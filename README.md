@@ -133,5 +133,4 @@ A wave-based runner where the player leads a flock of soldiers through a series 
 
 ## 10. Analytics & Telemetry
 
-* **Abstract `Telemetry` interface** with methods like `trackEvent(name, payload)`.
-* Default implementation logs to console; ready for remote analytics plug-in in future.
+* **Abstract `Telemetry` interface** with methods like `trackEvent(name, payload)`.* Default implementation logs to console; ready for remote analytics plug-in in future.\n---\n## Running the Game\nOpen index.html in a modern browser supporting ES modules.\n\n## Running Tests\nRun `npm install` and then `npm test`.\n
