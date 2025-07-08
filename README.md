@@ -1,66 +1,137 @@
-# TemplateJs
-TemplateJs is a minimal single-page web app template designed for quick deployment.
-It follows an AI-assisted iterative development process:
+## 1. Overview
 
-- User stories and requirements drive feature development.
-- Each iteration is a single commit for easy review.
-- AI-assisted coding minimizes manual intervention.
-- The focus is on defining clear requirements rather than manual coding.
+A wave-based runner where the player leads a flock of soldiers through a series of forward math-choice gates and skirmishes, then reverses course in a “showdown chase” back through retreat-phase gates while being pursued by a massive enemy army. All locomotion and obstacle avoidance is handled by a GPU boids system (Three.js GPGPU birds demo).
 
-This approach enables rapid prototyping and structured iteration.
+---
 
-## Using the Template
-1.  **Fork and Open in CodeSpaces:** Fork this repository and open your fork using GitHub CodeSpaces.
-2.  **Configure GitHub Pages:** Navigate to your repository's `Settings` -> `Pages`. In the "Branch" section, select the `main` branch to be automatically deployed by GitHub.
-3.  **Access Your WebApp:** If your fork is `github.com/YourUserName/YourFork`, your WebApp will be live at `YourUserName.github.io/YourFork`.
-4.  **Install Recommended VSCode Extensions (Optional but Recommended):**
-    *   "**Live Server**": Renders the `index.html` page and provides live updates during development.
-    *   "**GitHub Copilot**": Assists with coding tasks within CodeSpaces.
-    *   "**Git Graph**": Helps visualize and manage Git branches.
-5.  **Development Workflow:**
-    *   Modify `index.html` for the main page structure.
-    *   Add or edit JavaScript modules in the `src/` directory.
-    *   Place static assets like images or JSON files in `src/assets/`.
-    *   Create new HTML pages in the `pages/` directory if needed.
-    *   Regularly commit and push your changes to the `main` branch to update your live application.
+## 2. Game Flow
 
-## Project Structure
-This template uses a structured approach to organize files and facilitate development:
+1. **Forward Run**
 
-```
-/
-├── babel.config.js       # Babel configuration for JavaScript transpilation
-├── index.html            # Main HTML entry point for the application
-├── LICENSE               # Project license information
-├── package.json          # NPM package configuration, scripts, and dependencies
-├── README.md             # This file: project overview and instructions
-├── pages/                # Contains additional static HTML pages
-│   ├── about.html
-│   └── features.html
-└── src/                  # Main source code directory
-    ├── index.js          # Primary JavaScript entry point, linked from index.html
-    ├── index.test.js     # Tests for index.js
-    ├── assets/           # For static assets like JSON data, images, etc.
-    │   └── defaultData.json
-    ├── components/       # Reusable UI components or JavaScript modules
-    │   ├── person.js
-    │   └── person.test.js
-    └── utils/            # Utility functions and helpers
-        ├── utils.js
-        └── utils.test.js
-```
+   * **Gate Count**: Wave 1 = 5 gates; each new wave adds +1 gate.
+   * **Math Gates**: Full mix of +N, –N, ×M, ÷M in waves 1–5; waves 6–10 introduce two-step (e.g. x\*4–2); waves 11+ allow parentheses and exponents.
+   * **Optimal-Path**: At each gate, pick the larger outcome; chain through all gates to compute “optimal army” size.
+   * **Skirmishes**: Immediately after each gate, spawn an enemy group sized at **80 % of optimal-army** at that point. Resolve by straight subtraction.
+   * **Obstacles**: Static rocks with a 0.5 m soft-tolerance buffer around the divider; boids slide along rocks naturally; any boid outside the buffer for >2 s is removed. Use e.g. const rockGeo = new THREE.DodecahedronGeometry(1.2);
 
-### Best Practices:
-*   **Modularity:** Keep JavaScript modules in `src/components/` or `src/utils/` focused on specific functionalities.
-*   **Separation of Concerns:**
-    *   `index.html` defines the structure.
-    *   JavaScript in `src/` handles the logic.
-    *   Static assets are stored in `src/assets/`.
-    *   Additional distinct pages go into the `pages/` directory.
-*   **Testing:** Write unit tests for your JavaScript modules (e.g., `*.test.js`). This template is set up for Jest, but you can adapt it.
-*   **Dependencies:** Manage front-end dependencies using `package.json`.
-*   **Babel:** `babel.config.js` is configured for modern JavaScript. You can extend it if needed.
-*   **Clarity:** Ensure your file and folder names are descriptive.
+2. **Final Showdown → Retreat Chase**
 
-## Disclaimer
-TemplateJs is provided as-is. It is a general-purpose template and does not include domain-specific functionality. Use and modify as needed.
+   * Upon clearing the last forward gate, a single large enemy gate opens and a huge enemy flock pours out.
+   * **Camera**: Same angled top-down tilt, but target and dolly direction reverse so the player retreats back to the start.
+   * **Retreat Gates**: Mirror the forward-run count (e.g. 5 gates in wave 1). Same math-choice logic applies to your shrinking army.
+   * **Chase Pacing**: Both sides run at 6 m/s; **each time you clear a retreat-phase gate**, the enemy surges to 8 m/s for 1 s.
+   * **Arrow volleys**:
+
+     * Automatic burst every 0.8 s, equal to 10 % of current player-army size.
+     * Each arrow removes one enemy on contact (straight subtraction).
+     * Implement via instanced `ArrowHelper` or pooled custom arrow mesh.
+   * **Failure**: If the player returns to the start with zero soldiers, the wave ends as a defeat and the game **immediately restarts at wave 1**.
+
+3. **Progression & Scoring**
+
+   * **Stars**: 1–5 stars per wave based on final survivors ÷ optimal-path:
+
+     * ★1: 0–40 %
+     * ★2: 41–60 %
+     * ★3: 61–75 %
+     * ★4: 76–90 %
+     * ★5: 91–100 %
+   * **Persistence**: Store best star rating per wave in `localStorage`.
+   * **Navigation**: Single “Play” button always advances to next uncompleted wave; after each wave show a **minimalist popup**:
+
+     * “Wave X Complete”
+     * ★★☆☆☆ stars
+     * “Next” or “Retry”
+
+---
+
+## 3. Architecture & Module Breakdown
+
+* **`GameController`**
+
+  * Orchestrates wave start/end, transitions between forward and retreat phases, win/lose handling.
+* **`WaveGenerator`** (procedural)
+
+  * Calculates gate count, selects operations (tiered unlock), computes skirmish sizes, retreat-gate count.
+* **`FlockSystem`**
+
+  * GPU boids simulation (based on three.js GPGPU birds).
+  * Obstacle avoidance (rocks), cohesion radius, buffer timing for stragglers.
+* **`GateSystem`**
+
+  * Spawns math gates, displays floating labels, evaluates player vs optimal choices.
+* **`BattleSystem`**
+
+  * Resolves skirmishes and final showdown subtraction, arrow volley logic, enemy spawn/pursuit.
+* **`UIManager`**
+
+  * Renders HTML/CSS slider overlay (`<input type="range">` or custom div), floating soldier counts above flocks, gate-pop labels.
+  * Summary popup, Play button, responsive layout for mouse/touch.
+* **`PersistenceManager`**
+
+  * Wraps `localStorage` for saving/loading star ratings.
+* **`Telemetry`** (abstract interface)
+
+  * Default → console logging only; can plug in other analytics later.
+
+---
+
+## 4. Data & Configuration
+
+* **Wave configuration** is **fully procedural**—no external JSON. All parameters derive from formulas and rules in code.
+* **Math-expression tiers** and **skirmish percentage (80 %)** are constants defined in `WaveGenerator`.
+* **Star thresholds** and **movement speeds** are constants configurable at the top of each relevant module.
+
+---
+
+## 5. Visuals & Performance
+
+* **Models**: Low-poly soldier mesh instanced via `InstancedMesh`. Use e.g. new THREE.BoxGeometry(0.6, 1.2, 0.6); for soldiers. 
+* **Boids**: Thousands of agents at 60 fps desktop, 30 fps mobile.
+* **HUD**: Minimal floating labels (CSS2DRenderer or sprite text).
+* **Slider**: HTML/CSS overlay over the canvas; pointer events for drag/steer.
+* **Camera**: Single `PerspectiveCamera` at a fixed angle; follow-rig that lerps to the flock’s center, reversing direction on showdown.
+* **Performance Targets**:
+
+  * Desktop → 60 fps, Mobile → 30 fps (select quality preset at startup).
+  * No dynamic LOD or quality scaling beyond that.
+
+---
+
+## 6. Build & Deployment
+
+* **Pure ES6 modules**: drop all `.js` files in a `src/` folder; no build step if browser supports modules.
+* **Fallback**: If older-browser support is needed, use **Vite + native ESM** with zero-config for fast HMR and bundling.
+
+---
+
+## 7. Error Handling
+
+* **Resource load failures** (models, shaders, textures): catch, log to console, and **retry** up to N attempts before giving up silently.
+* **Runtime errors**: surface in console; game continues where possible.
+
+---
+
+## 8. Testing & QA
+
+* **Unit tests only** (Jest or equivalent) covering:
+
+  * Math-gate evaluation and optimal-path logic.
+  * `WaveGenerator` formulas (gate count, skirmish sizing, tiered unlock).
+  * Star-rating thresholds.
+  * Persistence read/write.
+  * Telemetry stub behavior.
+
+---
+
+## 9. Documentation
+
+* **Inline JSDoc** on all public classes, methods, and data structures.
+* A small `README.md` describing architecture, module responsibilities, and how to run tests.
+
+---
+
+## 10. Analytics & Telemetry
+
+* **Abstract `Telemetry` interface** with methods like `trackEvent(name, payload)`.
+* Default implementation logs to console; ready for remote analytics plug-in in future.
