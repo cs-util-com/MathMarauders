@@ -1,1 +1,43 @@
-TODO
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flock Runner Game</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+                "three/addons/renderers/CSS2DRenderer.js": "https://unpkg.com/three@0.160.0/examples/jsm/renderers/CSS2DRenderer.js"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="ui-overlay">
+            <div id="hud">
+                <p>Wave: <span id="wave-number">1</span></p>
+                <p>Army: <span id="army-size">0</span></p>
+            </div>
+            <div id="gate-labels">
+                <!-- Gate labels will be dynamically added here -->
+            </div>
+            <div id="player-input">
+                <input type="range" id="slider" min="-1" max="1" value="0" step="0.1">
+            </div>
+            <div id="popup" style="display: none;">
+                <h2 id="popup-title">Wave Complete</h2>
+                <p id="popup-stars">★★☆☆☆</p>
+                <button id="popup-next">Next</button>
+                <button id="popup-retry">Retry</button>
+            </div>
+            <button id="play-button">Play</button>
+        </div>
+    </div>
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>
