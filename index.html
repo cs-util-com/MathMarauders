@@ -1,1 +1,29 @@
-TODO
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Math Marauders</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; }
+    #choices button { margin: 0 10px; padding: 10px 20px; }
+    #popup { display: none; position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #444; padding: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Math Marauders</h1>
+  <div id="hud">
+    Soldiers: <span id="playerCount">0</span> | Enemy: <span id="enemyCount">0</span>
+  </div>
+  <div id="choices">
+    <button id="leftChoice">A</button>
+    <button id="rightChoice">B</button>
+  </div>
+  <button id="startBtn">Play</button>
+  <div id="popup">
+    <p id="popupText"></p>
+    <button id="nextBtn">Next</button>
+    <button id="retryBtn">Retry</button>
+  </div>
+  <script type="module" src="./src/index.js"></script>
+</body>
+</html>
