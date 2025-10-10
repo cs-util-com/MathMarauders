@@ -1,1 +1,247 @@
-TODO
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Math Marauders</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600&family=DM+Sans:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: 'DM Sans', system-ui, sans-serif;
+        background: radial-gradient(circle at top, #17263f, #0b0f18 55%, #05070a);
+        color: #f8f9fb;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        padding: 2rem 1rem 4rem;
+      }
+
+      .math-marauders {
+        width: min(960px, 100%);
+        background: rgba(7, 10, 17, 0.78);
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 40px 90px rgba(3, 6, 12, 0.6);
+        overflow: hidden;
+      }
+
+      .hud {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        padding: 2rem 2.5rem 3rem;
+      }
+
+      .hud__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-family: 'Chakra Petch', monospace;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        font-size: 0.95rem;
+      }
+
+      .hud__wave {
+        font-weight: 600;
+        color: #7cc7ff;
+      }
+
+      .hud__phase {
+        font-weight: 500;
+        color: #f8da6a;
+      }
+
+      .hud__status {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        background: rgba(14, 21, 34, 0.72);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .hud__army {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .hud__army::before {
+        content: '';
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: currentColor;
+        opacity: 0.7;
+      }
+
+      .hud__army--player {
+        color: #74facc;
+      }
+
+      .hud__army--enemy {
+        color: #ff7a9c;
+      }
+
+      .hud__stars {
+        font-size: 1.25rem;
+        letter-spacing: 0.4rem;
+        text-align: right;
+        color: #ffd25b;
+      }
+
+      .hud__gate-panel {
+        background: rgba(13, 18, 30, 0.86);
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 1.5rem 2rem 2rem;
+        display: grid;
+        gap: 1rem;
+      }
+
+      .hud__gate-title {
+        margin: 0;
+        font-family: 'Chakra Petch', monospace;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: #8cc9ff;
+      }
+
+      .hud__gate-options {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .hud__gate-option {
+        border-radius: 12px;
+        padding: 0.85rem 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(16, 24, 38, 0.85);
+        font-weight: 600;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+      }
+
+      .hud__gate-option--active {
+        transform: translateY(-4px);
+        border-color: #74facc;
+        box-shadow: 0 12px 30px rgba(116, 250, 204, 0.2);
+      }
+
+      .hud__gate-slider {
+        accent-color: #74facc;
+      }
+
+      .hud__choice {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.68);
+      }
+
+      .hud__button {
+        font-family: 'Chakra Petch', monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        border-radius: 999px;
+        padding: 0.85rem 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(20, 28, 44, 0.85);
+        color: #f4f7fb;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+
+      .hud__button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(116, 250, 204, 0.18);
+        border-color: rgba(116, 250, 204, 0.6);
+      }
+
+      .hud__button--primary {
+        background: linear-gradient(120deg, #74facc, #77b8ff);
+        color: #06121f;
+        border-color: transparent;
+      }
+
+      .hud__log {
+        margin: 0.5rem 0 0;
+        min-height: 1.25rem;
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.72);
+      }
+
+      .hud__popup {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(4, 7, 12, 0.82);
+        backdrop-filter: blur(10px);
+        padding: 1rem;
+      }
+
+      .hud__popup.hidden {
+        display: none;
+      }
+
+      .hud__popup > div,
+      .hud__popup h3,
+      .hud__popup p {
+        margin: 0;
+      }
+
+      .hud__popup h3 {
+        font-family: 'Chakra Petch', monospace;
+        font-size: 1.5rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .hud__popup-stars {
+        font-size: 1.75rem;
+        color: #ffd25b;
+        margin: 0.75rem 0;
+        text-align: center;
+        letter-spacing: 0.5rem;
+      }
+
+      .hud__popup-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1.25rem;
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 1rem;
+        }
+
+        .hud {
+          padding: 1.5rem;
+        }
+
+        .hud__gate-panel {
+          padding: 1.25rem 1.5rem 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main id="app"></main>
+    <script type="module" src="./src/index.js"></script>
+  </body>
+</html>
