@@ -1,40 +1,24 @@
 {
-  "name": "templatejs",
+  "name": "math-marauders",
   "version": "1.0.0",
-  "description": "TemplateJs is a minimal single-page web app template designed for quick deployment.  It follows an AI-assisted iterative development process:",
-  "main": "index.js",
+  "description": "Math Marauders is a strategy runner where you steer a flock through math gates and tactical battles.",
+  "type": "module",
   "scripts": {
-  "test": "npm run format && npm run lint && npm run check:all && npm run test:unit",
-    "format": "prettier --write --ignore-unknown --no-error-on-unmatched-pattern \"src\" \"pages\" \"config\" \"docs\" index.html README.md",
-    "test:unit": "jest --coverage --config config/jest.config.js",
-    "lint": "eslint . --config config/eslint.config.js",
-    "test:watch": "jest --watch --config config/jest.config.js",
-    "mutation": "stryker run config/stryker.conf.json; node mutation-testing/mutation-report-to-md.js",
-    "check:dup": "jscpd --config config/.jscpd.json src",
-    "check:cycles": "madge --circular --extensions js src",
-    "check:boundaries": "depcruise -c config/.dependency-cruiser.js src",
-    "check:all": "npm run check:dup && npm run check:cycles && npm run check:boundaries",
-    "validate:all": "npm run test && npm run mutation"
+    "lint": "eslint src",
+    "format": "prettier --check \"src/**/*.js\" \"index.html\" \"README.md\"",
+    "check:all": "npm run lint",
+    "test": "jest",
+    "validate:all": "npm run check:all && npm test"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.27.4",
     "@babel/preset-env": "^7.27.2",
     "@eslint/js": "^9.33.0",
-    "@stryker-mutator/core": "^9.0.1",
-    "@stryker-mutator/jest-runner": "^9.0.1",
-    "babel-jest": "^30.0.0-beta.3",
-    "dependency-cruiser": "^17.0.1",
+    "babel-jest": "^29.7.0",
     "eslint": "^9.33.0",
-    "eslint-plugin-jest": "^29.0.1",
-    "fast-check": "^4.2.0",
     "globals": "^16.3.0",
     "jest": "^29.7.0",
-    "jest-environment-jsdom": "^30.0.5",
-    "jscpd": "^4.0.5",
-    "prettier": "^3.3.3",
-    "madge": "^8.0.0"
+    "jest-environment-jsdom": "^29.7.0",
+    "prettier": "^3.3.3"
   }
 }
