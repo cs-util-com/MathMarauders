@@ -7,7 +7,7 @@
   "test": "npm run format && npm run lint && npm run check:all && npm run test:unit",
     "format": "prettier --write --ignore-unknown --no-error-on-unmatched-pattern \"src\" \"pages\" \"config\" \"docs\" index.html README.md",
     "test:unit": "jest --coverage --config config/jest.config.js",
-    "lint": "eslint . --config config/eslint.config.js",
+    "lint": "eslint . --config config/eslint.config.cjs",
     "test:watch": "jest --watch --config config/jest.config.js",
     "mutation": "stryker run config/stryker.conf.json; node mutation-testing/mutation-report-to-md.js",
     "check:dup": "jscpd --config config/.jscpd.json src",

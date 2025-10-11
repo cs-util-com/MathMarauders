@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/core/schema/stryker-schema.json",
+  "mutate": ["src/**/*.js", "!src/**/*.test.js"],
+  "testRunner": "jest",
+  "jest": {
+    "configFile": "config/jest.config.js"
+  },
+  "reporters": ["progress", "clear-text"],
+  "coverageAnalysis": "off"
+}
