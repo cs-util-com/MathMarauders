@@ -1,0 +1,12 @@
+export const SKIRMISH_ENEMY_FACTOR = 0.8;
+export const ARROW_VOLLEY_INTERVAL_MS = 800;
+export const ARROW_VOLLEY_RATIO = 0.1;
+export const PLAYER_BASE_SPEED = 6;
+export const ENEMY_BASE_SPEED = 6;
+export const ENEMY_SURGE_SPEED = 8;
+export const SURGE_DURATION_MS = 1000;
+export const STRAGGLER_TIMEOUT_MS = 2000;
+export const BASE_ARMY_SIZE = 60;
+export const ARMORY_GROWTH_PER_WAVE = 6;
+export const MAX_WAVE = 50;
+export const STAR_THRESHOLDS = [0.4, 0.6, 0.75, 0.9];
