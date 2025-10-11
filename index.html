@@ -1,1 +1,71 @@
-TODO
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Math Marauders</title>
+    <link rel="stylesheet" href="src/ui/styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="hud">
+        <h1>Math Marauders</h1>
+        <div class="hud__row">
+          <div class="hud__panel">
+            <span class="label">Wave</span>
+            <span id="wave-label" class="value">1</span>
+          </div>
+          <div class="hud__panel">
+            <span class="label">Phase</span>
+            <span id="phase-label" class="value">Forward Run</span>
+          </div>
+          <div class="hud__panel">
+            <span class="label">Army</span>
+            <span id="player-count" class="value">0</span>
+          </div>
+          <div class="hud__panel">
+            <span class="label">Enemy</span>
+            <span id="enemy-count" class="value">0</span>
+          </div>
+        </div>
+      </header>
+      <section class="playfield">
+        <canvas id="simulation-canvas" width="960" height="540"></canvas>
+        <div class="overlay">
+          <div class="gate-display">
+            <h2 id="gate-title">Gate 1</h2>
+            <div class="gate-options">
+              <div class="gate-option" id="option-left"></div>
+              <div class="gate-option" id="option-right"></div>
+            </div>
+          </div>
+          <div class="slider-control">
+            <label for="lane-slider">Lane Selection</label>
+            <input type="range" id="lane-slider" min="-100" max="100" value="0" />
+            <div class="slider-legend">
+              <span>Left</span>
+              <span>Right</span>
+            </div>
+          </div>
+          <div class="action-row">
+            <button id="advance-button" class="primary">Advance</button>
+            <button id="play-button" class="primary">Play Wave</button>
+          </div>
+          <div id="log" class="log"></div>
+        </div>
+      </section>
+    </main>
+    <div id="summary-modal" class="modal hidden">
+      <div class="modal__content">
+        <h2 id="summary-title"></h2>
+        <p id="summary-stars" class="stars"></p>
+        <p id="summary-body"></p>
+        <div class="modal__actions">
+          <button id="summary-primary" class="primary"></button>
+          <button id="summary-secondary" class="secondary"></button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="src/index.js"></script>
+  </body>
+</html>

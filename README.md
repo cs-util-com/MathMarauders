@@ -1,137 +1,58 @@
-## 1. Overview
+# Math Marauders
 
-A wave-based runner where the player leads a flock of soldiers through a series of forward math-choice gates and skirmishes, then reverses course in a “showdown chase” back through retreat-phase gates while being pursued by a massive enemy army. All locomotion and obstacle avoidance is handled by a GPU boids system (Three.js GPGPU birds demo).
+Math Marauders is a browser-based wave runner where a flock of soldiers charges through procedural math gates, clashes with opportunistic enemies, and then retreats through the same gauntlet while under pressure from a pursuing army. The project follows a lightweight, no-build architecture: every module ships as a native ES module, rendering occurs on a `<canvas>` element, and the UI overlay is regular HTML.
 
----
+## Gameplay Loop
 
-## 2. Game Flow
+1. **Forward Run** – Each wave begins with five math gates (plus one per additional wave). Gates present two expressions; the player steers toward the higher-valued lane. Immediately after clearing the gate a skirmish resolves against an enemy sized at 80 % of the optimal path at that checkpoint.
+2. **Showdown & Retreat** – Surviving soldiers trigger a massive enemy gate and must sprint back through a mirrored set of math gates. Arrow volleys fire automatically every gate, removing 10 % of the current army from the pursuers.
+3. **Scoring & Progression** – Stars are awarded based on final survivors vs. the optimal path and best scores are persisted in `localStorage`.
 
-1. **Forward Run**
+## Architecture
 
-   * **Gate Count**: Wave 1 = 5 gates; each new wave adds +1 gate.
-   * **Math Gates**: Full mix of +N, –N, ×M, ÷M in waves 1–5; waves 6–10 introduce two-step (e.g. x\*4–2); waves 11+ allow parentheses and exponents.
-   * **Optimal-Path**: At each gate, pick the larger outcome; chain through all gates to compute “optimal army” size.
-   * **Skirmishes**: Immediately after each gate, spawn an enemy group sized at **80 % of optimal-army** at that point. Resolve by straight subtraction.
-   * **Obstacles**: Static rocks with a 0.5 m soft-tolerance buffer around the divider; boids slide along rocks naturally; any boid outside the buffer for >2 s is removed. Use e.g. const rockGeo = new THREE.DodecahedronGeometry(1.2);
+The codebase is organised into a small set of focused modules:
 
-2. **Final Showdown → Retreat Chase**
+| Module | Responsibility |
+| ------ | -------------- |
+| `core/GameController` | Orchestrates wave state, phase transitions, scoring, and telemetry events. |
+| `game/WaveGenerator` | Procedurally generates math gates and pre-computes optimal-path checkpoints. |
+| `game/GateSystem` | Steps through gates, evaluates player choices, and exposes enemy sizing. |
+| `game/BattleSystem` | Resolves forward skirmishes, showdown spawning, and retreat-phase volleys. |
+| `game/FlockSystem` | Renders a GPU-free boids-style visualisation with obstacle avoidance and straggler clean-up. |
+| `ui/UIManager` | Manages DOM overlays, slider input, logs, and summary modals. |
+| `core/PersistenceManager` | Stores best star ratings in `localStorage`. |
+| `core/Telemetry` | Small abstraction with a console-backed default implementation. |
 
-   * Upon clearing the last forward gate, a single large enemy gate opens and a huge enemy flock pours out.
-   * **Camera**: Same angled top-down tilt, but target and dolly direction reverse so the player retreats back to the start.
-   * **Retreat Gates**: Mirror the forward-run count (e.g. 5 gates in wave 1). Same math-choice logic applies to your shrinking army.
-   * **Chase Pacing**: Both sides run at 6 m/s; **each time you clear a retreat-phase gate**, the enemy surges to 8 m/s for 1 s.
-   * **Arrow volleys**:
+Utility modules in `src/utils` provide deterministic random number generation and star-rating helpers. Every public class includes JSDoc, and Jest tests cover the procedural math logic, scoring, persistence, and telemetry stubs.
 
-     * Automatic burst every 0.8 s, equal to 10 % of current player-army size.
-     * Each arrow removes one enemy on contact (straight subtraction).
-     * Implement via instanced `ArrowHelper` or pooled custom arrow mesh.
-   * **Failure**: If the player returns to the start with zero soldiers, the wave ends as a defeat and the game **immediately restarts at wave 1**.
+## Development
 
-3. **Progression & Scoring**
+The project purposely avoids a bundler. Use any static file server (or run `npm start`) and open `http://localhost:8080` in a modern browser.
 
-   * **Stars**: 1–5 stars per wave based on final survivors ÷ optimal-path:
+```bash
+npm install
+npm start
+```
 
-     * ★1: 0–40 %
-     * ★2: 41–60 %
-     * ★3: 61–75 %
-     * ★4: 76–90 %
-     * ★5: 91–100 %
-   * **Persistence**: Store best star rating per wave in `localStorage`.
-   * **Navigation**: Single “Play” button always advances to next uncompleted wave; after each wave show a **minimalist popup**:
+### Quality Gates
 
-     * “Wave X Complete”
-     * ★★☆☆☆ stars
-     * “Next” or “Retry”
+| Command | Purpose |
+| ------- | ------- |
+| `npm run lint` | ESLint across all source modules. |
+| `npm run test:unit` | Jest unit tests for procedural logic and persistence. |
+| `npm test` | Convenience command running linting and unit tests. |
 
----
+## Testing Strategy
 
-## 3. Architecture & Module Breakdown
+Unit tests live next to the modules they exercise:
 
-* **`GameController`**
+- `WaveGenerator.test.js` verifies gate counts, math tiers, and skirmish percentages.
+- `scoring.test.js` checks star thresholds.
+- `PersistenceManager.test.js` ensures best-star persistence and error handling.
+- `Telemetry.test.js` guards the console-backed stub.
 
-  * Orchestrates wave start/end, transitions between forward and retreat phases, win/lose handling.
-* **`WaveGenerator`** (procedural)
+Run `npm test` before committing to keep the procedural logic deterministic and to surface regression bugs quickly.
 
-  * Calculates gate count, selects operations (tiered unlock), computes skirmish sizes, retreat-gate count.
-* **`FlockSystem`**
+## Telemetry & Extensibility
 
-  * GPU boids simulation (based on three.js GPGPU birds).
-  * Obstacle avoidance (rocks), cohesion radius, buffer timing for stragglers.
-* **`GateSystem`**
-
-  * Spawns math gates, displays floating labels, evaluates player vs optimal choices.
-* **`BattleSystem`**
-
-  * Resolves skirmishes and final showdown subtraction, arrow volley logic, enemy spawn/pursuit.
-* **`UIManager`**
-
-  * Renders HTML/CSS slider overlay (`<input type="range">` or custom div), floating soldier counts above flocks, gate-pop labels.
-  * Summary popup, Play button, responsive layout for mouse/touch.
-* **`PersistenceManager`**
-
-  * Wraps `localStorage` for saving/loading star ratings.
-* **`Telemetry`** (abstract interface)
-
-  * Default → console logging only; can plug in other analytics later.
-
----
-
-## 4. Data & Configuration
-
-* **Wave configuration** is **fully procedural**—no external JSON. All parameters derive from formulas and rules in code.
-* **Math-expression tiers** and **skirmish percentage (80 %)** are constants defined in `WaveGenerator`.
-* **Star thresholds** and **movement speeds** are constants configurable at the top of each relevant module.
-
----
-
-## 5. Visuals & Performance
-
-* **Models**: Low-poly soldier mesh instanced via `InstancedMesh`. Use e.g. new THREE.BoxGeometry(0.6, 1.2, 0.6); for soldiers. 
-* **Boids**: Thousands of agents at 60 fps desktop, 30 fps mobile.
-* **HUD**: Minimal floating labels (CSS2DRenderer or sprite text).
-* **Slider**: HTML/CSS overlay over the canvas; pointer events for drag/steer.
-* **Camera**: Single `PerspectiveCamera` at a fixed angle; follow-rig that lerps to the flock’s center, reversing direction on showdown.
-* **Performance Targets**:
-
-  * Desktop → 60 fps, Mobile → 30 fps (select quality preset at startup).
-  * No dynamic LOD or quality scaling beyond that.
-
----
-
-## 6. Build & Deployment
-
-* **Pure ES6 modules**: drop all `.js` files in a `src/` folder; no build step if browser supports modules.
-* **Fallback**: If older-browser support is needed, use **Vite + native ESM** with zero-config for fast HMR and bundling.
-
----
-
-## 7. Error Handling
-
-* **Resource load failures** (models, shaders, textures): catch, log to console, and **retry** up to N attempts before giving up silently.
-* **Runtime errors**: surface in console; game continues where possible.
-
----
-
-## 8. Testing & QA
-
-* **Unit tests only** (Jest or equivalent) covering:
-
-  * Math-gate evaluation and optimal-path logic.
-  * `WaveGenerator` formulas (gate count, skirmish sizing, tiered unlock).
-  * Star-rating thresholds.
-  * Persistence read/write.
-  * Telemetry stub behavior.
-
----
-
-## 9. Documentation
-
-* **Inline JSDoc** on all public classes, methods, and data structures.
-* A small `README.md` describing architecture, module responsibilities, and how to run tests.
-
----
-
-## 10. Analytics & Telemetry
-
-* **Abstract `Telemetry` interface** with methods like `trackEvent(name, payload)`.
-* Default implementation logs to console; ready for remote analytics plug-in in future.
+Telemetry is intentionally abstract: swap in a real analytics provider by subclassing `Telemetry` and passing it into the `GameController` constructor. The rest of the game interacts solely through `trackEvent` calls, keeping the implementation loosely coupled and testable.
