@@ -104,12 +104,13 @@
 
 ### 9.1 Gate Generation & Math
 
-* **Operators:** `+a`, `−b`, `×c`, `÷d` (a,b,c,d are per-gate values in ranges tuned per wave).
+* **Operators:** Base operations `+a`, `−b`, `×c`, `÷d` (a,b,c,d are per-gate values in ranges tuned per wave).
 * **Rounding:**
 
   * After `+`/`−`: clamp ≥0.
   * After `×`/`÷`: **round to nearest integer**, min 1; clamp to [1, MAX_ARMY].
 * **Balance rules:** never generate `−` that would kill all units; `÷` never below 1.
+* **Operation tiers:** Waves 1–5 use single-step expressions; waves 6–10 unlock two-step combos (e.g. `×4−2`); waves 11+ may introduce short parenthetical or exponent variants. Every composite gate resolves to the same clamp/round pipeline above.
 * **Two-gate choice:** place two gates per decision point; values drawn to create meaningful deltas (≥15% difference at early waves, ≥25% later).
 * **Color coding:** + green, − red, × yellow, ÷ blue.
 
@@ -123,6 +124,7 @@
 * **Tick:** every 150 ms both sides exchange damage.
 * **Damage model:** `damage = base * min(attackerCount, defenderCount) ^ 0.85`.
 * **Casualty calc:** casualties per tick = `ceil(damage / HP_PER_UNIT)`; clamp ≤ current count.
+* **Enemy sizing:** Enemy squads spawn at ~80% of the optimal player count projected for that decision, keeping pressure while preserving a winnable path.
 * **Volleys:** spawn **arrow particles** proportional to casualties (capped) for visual feedback.
 * **End of skirmish:** side reaching 0 loses; survivor proceeds with remaining units. Time to kill must fit the snackable pace (2–4 ticks typical).
 * **Determinism:** seeded RNG for slight spread; same seed → same result.
@@ -130,7 +132,9 @@
 ### 9.4 Reverse Chase
 
 * **Setup:** spawn a chasing enemy horde at distance `D0`; speed slightly higher than player (`vChase = v0*1.05`).
-* **Win/Lose:** reach finish line with ≥1 unit → win; if caught or unit count hits 0 → fail.
+* **Gate mirror:** Reverse phase reuses the forward-run gate count for the current wave, with the same math rules applied to shrinking army sizes.
+* **Volley pressure:** Fire an automatic arrow volley every 0.8 s sized to ~10% of the current player army; arrows target and remove chasers on hit using the skirmish arrow FX/pools.
+* **Win/Lose:** reach finish line with ≥1 unit → win; if caught or unit count hits 0 → fail; a failed chase resets progression to wave 1 before the next attempt.
 
 ### 9.5 Scoring, Stars, & Persistence
 
@@ -140,8 +144,14 @@
   * Skirmish speed bonus (fewer ticks).
   * Survival multiplier for reverse chase.
 * **Star bands:** 1★ / 2★ / 3★ at ~40% / 70% / 90% of level’s theoretical max.
-* **Persistence:** LocalStorage `{ highScore, bestStars, lastSeed }`.
+* **Persistence:** LocalStorage stores `{ highScore, bestStars, lastSeed }` plus a per-wave map of best star ratings to drive progression UI.
+* **Wave flow:** After each wave, show a minimalist "Wave X Complete" popup with the current 1–3★ result and `Next` / `Retry` options; the global Play button advances to the next unfinished wave by default.
 * **Seeded runs:** shareable seed param (`?seed=XXXX`).
+
+### 9.6 Wave Structure & Progression
+
+* **Gate counts:** Wave 1 features 5 forward-run gates; each new wave adds +1 gate (tunable cap) before transitioning to the skirmish beat and mirrored reverse run.
+* **Deterministic pairing:** Forward and reverse gate sets derive from the same seeded generator so that a given `seed+wave` produces identical layouts across sessions.
 
 ## 10) Architecture & Code Structure
 
