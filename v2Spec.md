@@ -180,6 +180,7 @@
   * `Flock.ts` (GPU boids update step + CPU fallback, straggler cleanup hooks).
   * `SeedRng.ts` (seedable PRNG).
   * `Perf.ts` (FPS monitor, degrade/upgrade).
+  * `Telemetry.ts` (abstract event interface with `trackEvent(name, payload)`; default console logger; ready for external analytics).
 * **Object pooling:** arrows, sparks, props are pooled; **InstancedMesh** per type; per-instance attributes for color/scale/opacity.
 * **Selective bloom list:** numeral cards, trail material. Everything else excluded.
 
@@ -232,6 +233,7 @@
   * Combat tick determinism for a fixed seed.
   * Performance guard thresholds (simulate FPS series).
   * Score & star band calculations.
+  * Telemetry adapter routes events to console without throwing.
 * **Integration (Playwright):**
 
   * Start → finish happy path; restart is instant.
@@ -245,6 +247,7 @@
 * **Assets:** glTF (embedded) or inline BufferGeometry for ultra-light meshes; matcap PNGs (sRGB).
 * **Hosting:** static hosting (GitHub Pages/Netlify/etc.).
 * **Shareable seed:** via querystring; copy-to-clipboard button on end card (optional later).
+* **Documentation:** Inline JSDoc on public APIs; keep architecture and tooling notes current in `README.md`/`docs/`.
 
 ## 16) Non-Goals (v1)
 
