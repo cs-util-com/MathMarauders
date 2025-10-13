@@ -111,6 +111,7 @@
   * After `×`/`÷`: **round to nearest integer**, min 1; clamp to [1, MAX_ARMY].
 * **Balance rules:** never generate `−` that would kill all units; `÷` never below 1.
 * **Operation tiers:** Waves 1–5 use single-step expressions; waves 6–10 unlock two-step combos (e.g. `×4−2`); waves 11+ may introduce short parenthetical or exponent variants. Every composite gate resolves to the same clamp/round pipeline above.
+* **Evaluation pipeline:** Composite gates are generated from a vetted template set (mul-add, add-mul, pow-div, etc.) and evaluate deterministically left-to-right unless parentheses are present. Apply rounding/clamping only after the full expression resolves; intermediate steps must stay ≥0 (designers drop any template that would violate this with configured ranges).
 * **Two-gate choice:** place two gates per decision point; values drawn to create meaningful deltas (≥15% difference at early waves, ≥25% later).
 * **Color coding:** + green, − red, × yellow, ÷ blue.
 
@@ -134,7 +135,9 @@
 * **Setup:** spawn a chasing enemy horde at distance `D0`; speed slightly higher than player (`vChase = v0*1.05`).
 * **Gate mirror:** Reverse phase reuses the forward-run gate count for the current wave, with the same math rules applied to shrinking army sizes.
 * **Volley pressure:** Fire an automatic arrow volley every 0.8 s sized to ~10% of the current player army; arrows target and remove chasers on hit using the skirmish arrow FX/pools.
+* **Speed profile:** Baseline forward/reverse travel speed is 6 m/s; clearing a reverse gate triggers a 1 s chase surge where the horde spikes to 8 m/s before easing back to baseline.
 * **Win/Lose:** reach finish line with ≥1 unit → win; if caught or unit count hits 0 → fail; a failed chase resets progression to wave 1 before the next attempt.
+* **Difficulty envelope:** Tune surge distance and volley effectiveness so a player who maintains ≥70% of the optimal count survives with a small buffer, while dropping below ~50% creates a credible fail risk without feeling impossible.
 
 ### 9.5 Scoring, Stars, & Persistence
 
