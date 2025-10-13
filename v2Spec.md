@@ -93,6 +93,12 @@
 * **Culling:** frustum + CPU early-out > 65 m behind camera.
 * **Spawn:** deterministic from run seed.
 
+### 7.5 Obstacles & Straggler Culling
+
+* **Rocks:** Low-poly gumdrop rocks (≤150 tris) intermittently hug the divider with a 0.5 m buffer; they appear on seeded intervals independent of props.
+* **Avoidance:** Player flock pathing treats obstacles as soft-collide volumes—agents slide along them but remain within lane bounds.
+* **Straggler rule:** Any unit that drifts outside the lane or stays beyond the buffer for >2 s is despawned with a subtle dissolve so the formation stays tight.
+
 ## 8) Performance Guards & Feature Flags
 
 * **FPS monitor:** rolling avg over 2 s.
@@ -119,6 +125,7 @@
 
 * **Speed:** base lane speed `v0`, ramps up slightly each wave.
 * **Steer input:** horizontal factor ∈ [−1, +1] from slider.
+* **Flock simulation:** Use a lightweight GPU boids pass (inspired by three.js GPGPU birds) to keep large formations cohesive while responding to steering and obstacle avoidance. For low-spec fallback, degrade to CPU formation offsets.
 
 ### 9.3 Skirmish Resolution (deterministic & fast)
 
@@ -148,7 +155,7 @@
   * Survival multiplier for reverse chase.
 * **Star bands:** 1★ / 2★ / 3★ at ~40% / 70% / 90% of level’s theoretical max.
 * **Persistence:** LocalStorage stores `{ highScore, bestStars, lastSeed }` plus a per-wave map of best star ratings to drive progression UI.
-* **Wave flow:** After each wave, show a minimalist "Wave X Complete" popup with the current 1–3★ result and `Next` / `Retry` options; the global Play button advances to the next unfinished wave by default.
+* **Wave flow:** After each wave, show a minimalist "Wave X Complete" popup with the current 1–3★ result (optionally show a 5★ breakdown for deeper post-run insights) and `Next` / `Retry` options; the global Play button advances to the next unfinished wave by default.
 * **Seeded runs:** shareable seed param (`?seed=XXXX`).
 
 ### 9.6 Wave Structure & Progression
@@ -170,6 +177,7 @@
   * `VFX.ts` (trails, sparks, flashes; performance guards).
   * `CameraRig.ts` (rail samples, beat transitions, shake).
   * `UI.tsx` or `ui.ts` (DOM HUD & slider; pause; end card).
+  * `Flock.ts` (GPU boids update step + CPU fallback, straggler cleanup hooks).
   * `SeedRng.ts` (seedable PRNG).
   * `Perf.ts` (FPS monitor, degrade/upgrade).
 * **Object pooling:** arrows, sparks, props are pooled; **InstancedMesh** per type; per-instance attributes for color/scale/opacity.
