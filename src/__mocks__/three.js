@@ -9,6 +9,13 @@ class BasicObject3D {
         this.position.x = x ?? 0;
         this.position.y = y ?? 0;
         this.position.z = z ?? 0;
+        return this.position;
+      },
+      copy: (vec) => {
+        this.position.x = vec?.x ?? 0;
+        this.position.y = vec?.y ?? 0;
+        this.position.z = vec?.z ?? 0;
+        return this.position;
       },
     };
     this.rotation = { x: 0, y: 0, z: 0 };
@@ -20,6 +27,7 @@ class BasicObject3D {
         this.scale.x = x ?? 1;
         this.scale.y = y ?? 1;
         this.scale.z = z ?? 1;
+        return this.scale;
       },
     };
     this.visible = true;
@@ -36,6 +44,18 @@ class BasicObject3D {
 
   clone() {
     return new this.constructor();
+  }
+
+  rotateX(radians) {
+    this.rotation.x += radians;
+  }
+
+  rotateY(radians) {
+    this.rotation.y += radians;
+  }
+
+  rotateZ(radians) {
+    this.rotation.z += radians;
   }
 }
 
@@ -63,7 +83,17 @@ class Color {
     this.set(value);
   }
   set(value) {
-    const resolved = typeof value === 'number' ? value : parseInt(value.replace('#', ''), 16);
+    if (value instanceof Color) {
+      this.r = value.r;
+      this.g = value.g;
+      this.b = value.b;
+      return this;
+    }
+    const hexString =
+      typeof value === 'string' ? value.replace('#', '') : value.toString(16);
+    const resolvedRaw =
+      typeof value === 'number' ? value : parseInt(hexString, 16);
+    const resolved = Number.isNaN(resolvedRaw) ? 0 : resolvedRaw;
     const r = (resolved >> 16) & 255;
     const g = (resolved >> 8) & 255;
     const b = resolved & 255;
@@ -105,6 +135,17 @@ class Mesh extends BasicObject3D {
     this.material = material ?? {};
     this.castShadow = false;
     this.receiveShadow = false;
+    this.userData = {};
+  }
+
+  clone() {
+    const copy = new this.constructor(this.geometry, this.material);
+    copy.position.set(this.position.x, this.position.y, this.position.z);
+    copy.rotation = { ...this.rotation };
+    copy.scale.set(this.scale.x, this.scale.y, this.scale.z);
+    copy.castShadow = this.castShadow;
+    copy.receiveShadow = this.receiveShadow;
+    return copy;
   }
 }
 
@@ -278,6 +319,7 @@ export {
   MeshLambertMaterial,
   MeshMatcapMaterial,
   MeshStandardMaterial,
+  BufferGeometry,
   PlaneGeometry,
   SphereGeometry,
   BufferAttribute,

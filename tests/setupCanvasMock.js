@@ -3,33 +3,46 @@ const descriptor = Object.getOwnPropertyDescriptor(
   'getContext'
 );
 
+class MockCanvasRenderingContext2D {
+  constructor(canvas) {
+    this.canvas = canvas;
+  }
+
+  fillRect() {}
+  clearRect() {}
+  drawImage() {}
+  getImageData() {
+    return { data: [] };
+  }
+  putImageData() {}
+  createImageData() {
+    return { data: [] };
+  }
+  setTransform() {}
+  save() {}
+  restore() {}
+  beginPath() {}
+  closePath() {}
+  moveTo() {}
+  lineTo() {}
+  fill() {}
+  stroke() {}
+  arc() {}
+  measureText() {
+    return { width: 0 };
+  }
+  fillText() {}
+  createLinearGradient() {
+    return { addColorStop: () => {} };
+  }
+}
+
 Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
   configurable: true,
   writable: true,
   value: function getContext(type) {
     if (type === '2d') {
-      return {
-        canvas: this,
-        fillRect: () => {},
-        clearRect: () => {},
-  drawImage: () => {},
-  getImageData: () => ({ data: [] }),
-  putImageData: () => {},
-  createImageData: () => ({ data: [] }),
-  setTransform: () => {},
-        save: () => {},
-        restore: () => {},
-        beginPath: () => {},
-        closePath: () => {},
-        moveTo: () => {},
-        lineTo: () => {},
-        fill: () => {},
-        stroke: () => {},
-        arc: () => {},
-        measureText: () => ({ width: 0 }),
-        fillText: () => {},
-        createLinearGradient: () => ({ addColorStop: () => {} }),
-      };
+      return new MockCanvasRenderingContext2D(this);
     }
     return null;
   },

@@ -39,6 +39,7 @@ export function createUnitsLayer(scene) {
   let playerCount = 0;
   let enemyCount = 0;
   let steer = 0;
+  let targetLane = 0.5;
 
   function updateMesh(mesh, positions, count) {
     for (let i = 0; i < MAX_UNITS; i += 1) {
@@ -85,8 +86,16 @@ export function createUnitsLayer(scene) {
     setSteer(value) {
       steer = Math.max(-1, Math.min(1, value));
     },
+    setTargetLane(lane) {
+      const clamped = Math.max(0, Math.min(1, lane));
+      targetLane = clamped;
+      steer = clamped * 2 - 1;
+    },
     getCentroid() {
       return centroid;
+    },
+    getTargetLane() {
+      return targetLane;
     },
   };
 }

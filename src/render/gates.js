@@ -63,14 +63,16 @@ function updateGateDisplay(group, gate, playerCount) {
   canvas.width = 256;
   canvas.height = 256;
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = gate.color;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#0b0d12';
-  ctx.font = 'bold 140px "Inter", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(label, canvas.width / 2, canvas.height / 2);
+  if (ctx && typeof ctx.clearRect === 'function') {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = gate.color;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#0b0d12';
+    ctx.font = 'bold 140px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, canvas.width / 2, canvas.height / 2);
+  }
   const texture =
     group.card.material.map instanceof CanvasTexture
       ? group.card.material.map
