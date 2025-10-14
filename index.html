@@ -1,1 +1,479 @@
-TODO
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Math Marauders</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --pink: #ff5fa2;
+        --teal: #33d6a6;
+        --yellow: #ffd166;
+        --blue: #00d1ff;
+        --bg-start: #12151a;
+        --bg-end: #1e2633;
+        --text-bright: #f5f7ff;
+        --text-muted: rgba(245, 247, 255, 0.7);
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(180deg, var(--bg-start), var(--bg-end));
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 16px;
+        color: var(--text-bright);
+      }
+
+      .app {
+        width: min(960px, 100%);
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 16px;
+      }
+
+      .hud {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .hud__score,
+      .hud__timer,
+      .hud__units {
+        background: rgba(18, 21, 26, 0.6);
+        padding: 12px 20px;
+        border-radius: 999px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 0.85rem;
+      }
+
+      .hud__score strong,
+      .hud__timer strong,
+      .hud__units strong {
+        display: block;
+        font-size: 1.25rem;
+        letter-spacing: 0.02em;
+        color: var(--text-bright);
+      }
+
+      .hud__pause {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(18, 21, 26, 0.6);
+        border: none;
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        color: var(--text-bright);
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+
+      .pause-menu {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 8px);
+        background: rgba(18, 21, 26, 0.95);
+        border-radius: 16px;
+        padding: 12px;
+        display: none;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 160px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+        z-index: 10;
+      }
+
+      .pause-menu button {
+        background: none;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: var(--text-bright);
+        padding: 8px 12px;
+        border-radius: 12px;
+        cursor: pointer;
+      }
+
+      .pause-menu button:hover,
+      .pause-menu button:focus {
+        border-color: var(--teal);
+        outline: none;
+      }
+
+      .lane {
+        background: rgba(18, 21, 26, 0.65);
+        border-radius: 32px;
+        padding: 24px;
+        display: grid;
+        gap: 24px;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.05),
+          0 20px 60px rgba(0, 0, 0, 0.45);
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .gate-panel__options,
+      .reverse-panel__gates {
+        display: grid;
+        gap: 16px;
+      }
+
+      .gate-card {
+        border-radius: 24px;
+        padding: 20px;
+        display: grid;
+        gap: 12px;
+        border: none;
+        color: #0b0d12;
+        font-weight: 700;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition:
+          transform 140ms ease,
+          box-shadow 140ms ease;
+        min-height: 120px;
+      }
+
+      .gate-card span {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(11, 13, 18, 0.65);
+      }
+
+      .gate-card:hover,
+      .gate-card:focus-visible {
+        transform: translateY(-6px);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+        outline: none;
+      }
+
+      .stage-label {
+        font-size: 1.1rem;
+        letter-spacing: 0.1em;
+        color: var(--text-muted);
+        text-transform: uppercase;
+      }
+
+      .log {
+        display: grid;
+        gap: 8px;
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        max-height: 180px;
+        overflow-y: auto;
+        padding-right: 8px;
+      }
+
+      .log strong {
+        color: var(--text-bright);
+      }
+
+      .skirmish-panel,
+      .reverse-panel {
+        display: grid;
+        gap: 16px;
+      }
+
+      .skirmish-log {
+        display: grid;
+        gap: 6px;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        max-height: 160px;
+        overflow-y: auto;
+      }
+
+      .reverse-panel__progress {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        height: 14px;
+        overflow: hidden;
+      }
+
+      .reverse-panel__progress-bar {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--teal), var(--blue));
+        transition: width 160ms ease;
+      }
+
+      .reverse-panel__slider {
+        position: relative;
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 24px;
+      }
+
+      .reverse-panel__slider input[type='range'] {
+        width: 100%;
+        appearance: none;
+        background: none;
+        margin: 0;
+      }
+
+      .reverse-panel__slider
+        input[type='range']::-webkit-slider-runnable-track {
+        height: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+      }
+
+      .reverse-panel__slider input[type='range']::-webkit-slider-thumb {
+        appearance: none;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--pink);
+        border: 4px solid rgba(255, 255, 255, 0.6);
+        margin-top: -17px;
+        transition: transform 120ms ease;
+      }
+
+      .reverse-panel__slider input[type='range']:active::-webkit-slider-thumb {
+        transform: scale(1.1);
+      }
+
+      .reverse-panel__slider input[type='range']::-moz-range-track {
+        height: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+      }
+
+      .reverse-panel__slider input[type='range']::-moz-range-thumb {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: none;
+        background: var(--pink);
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.6);
+      }
+
+      .reverse-panel__target {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 3px solid var(--yellow);
+        background: rgba(255, 209, 102, 0.2);
+        pointer-events: none;
+        transition: left 240ms ease;
+      }
+
+      .reverse-panel__hud {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .reverse-panel__gates {
+        display: grid;
+        gap: 12px;
+      }
+
+      .reverse-panel__gates .gate-card {
+        min-height: 96px;
+      }
+
+      .footer {
+        display: flex;
+        justify-content: center;
+      }
+
+      .start-button,
+      .skirmish-next {
+        background: linear-gradient(90deg, var(--pink), var(--teal));
+        border: none;
+        border-radius: 999px;
+        padding: 16px 32px;
+        color: #0b0d12;
+        font-weight: 700;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      }
+
+      .start-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(6, 9, 12, 0.85);
+        display: grid;
+        place-items: center;
+      }
+
+      .overlay__card {
+        background: rgba(18, 21, 26, 0.95);
+        padding: 32px;
+        border-radius: 24px;
+        display: grid;
+        gap: 16px;
+        text-align: center;
+        width: min(360px, 90vw);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+      }
+
+      .stars {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        font-size: 1.5rem;
+        color: var(--yellow);
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      @media (max-width: 640px) {
+        .hud {
+          flex-wrap: wrap;
+        }
+
+        .hud__pause {
+          position: static;
+          transform: none;
+        }
+
+        .pause-menu {
+          position: fixed;
+          top: unset;
+          bottom: 24px;
+          right: 24px;
+        }
+
+        .gate-panel__options {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app" aria-live="polite">
+      <header class="hud">
+        <div class="hud__score">
+          <span>Score</span><strong data-score>0</strong>
+        </div>
+        <div class="hud__timer">
+          <span>Wave Timer</span><strong data-timer>120.0s</strong>
+        </div>
+        <div class="hud__units">
+          <span>Units</span><strong data-units>0</strong>
+        </div>
+        <button
+          class="hud__pause"
+          type="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+          data-pause
+        >
+          ⏸
+        </button>
+        <div class="pause-menu" role="menu" data-pause-menu>
+          <button type="button" data-resume role="menuitem">Resume</button>
+          <button type="button" data-restart role="menuitem">Restart</button>
+          <button type="button" data-mute role="menuitem">Toggle Mute</button>
+        </div>
+      </header>
+      <section class="lane">
+        <div class="stage-label" data-stage-label>Forward Run</div>
+        <div class="log" data-log aria-live="polite"></div>
+        <div class="gate-panel" data-gate-panel>
+          <div class="gate-panel__options" data-gate-options></div>
+        </div>
+        <div class="skirmish-panel hidden" data-skirmish-panel>
+          <div class="reverse-panel__hud">
+            <div>Volley Ticks: <strong data-skirmish-ticks>0</strong></div>
+            <div>Duration: <strong data-skirmish-duration>0ms</strong></div>
+          </div>
+          <div>Enemy forces neutralised. Survivors rally for the chase.</div>
+          <div class="skirmish-log" data-skirmish-log></div>
+          <button class="skirmish-next" type="button" data-skirmish-next>
+            Reverse Chase
+          </button>
+        </div>
+        <div class="reverse-panel hidden" data-reverse-panel>
+          <div class="reverse-panel__hud">
+            <div>Formation: <strong data-reverse-units>0</strong></div>
+            <div>Chaser Gap: <strong data-reverse-gap>0m</strong></div>
+          </div>
+          <div class="reverse-panel__progress" aria-hidden="true">
+            <div
+              class="reverse-panel__progress-bar"
+              data-reverse-progress
+            ></div>
+          </div>
+          <div class="reverse-panel__slider">
+            <div
+              class="reverse-panel__target"
+              data-target-indicator
+              aria-hidden="true"
+            ></div>
+            <label class="sr-only" for="steer">Steering slider</label>
+            <input
+              id="steer"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              data-steer-input
+            />
+          </div>
+          <div class="reverse-panel__gates" data-reverse-gates></div>
+        </div>
+      </section>
+      <footer class="footer">
+        <button class="start-button" type="button" data-start>Start Run</button>
+      </footer>
+    </main>
+    <div class="overlay hidden" data-overlay>
+      <div class="overlay__card">
+        <h2 data-end-title>Run Complete</h2>
+        <p data-end-score>Final Score: 0</p>
+        <div class="stars" data-stars aria-label="Star rating"></div>
+        <button class="start-button" type="button" data-overlay-restart>
+          Run Again
+        </button>
+      </div>
+    </div>
+    <script type="module" src="./src/index.js"></script>
+  </body>
+</html>
