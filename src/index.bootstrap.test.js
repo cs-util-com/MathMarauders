@@ -26,13 +26,14 @@ test('index bootstrap collects DOM elements and initializes the app', async () =
     <div data-timer></div>
     <div data-units></div>
     <div data-stage-label></div>
-    <div data-log></div>
+  <div data-scene-root></div>
     <div data-gate-panel></div>
     <div data-gate-options></div>
     <div data-skirmish-panel></div>
-    <div data-skirmish-log></div>
     <div data-skirmish-ticks></div>
     <div data-skirmish-duration></div>
+  <div data-skirmish-survivors></div>
+  <div data-skirmish-enemy></div>
     <button data-skirmish-next></button>
     <div data-reverse-panel></div>
     <div data-reverse-units></div>

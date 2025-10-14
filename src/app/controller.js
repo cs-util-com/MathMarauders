@@ -7,6 +7,7 @@ import {
 } from '../game/gate.js';
 import { simulateSkirmish } from '../game/skirmish.js';
 import { computeReverseTick, rollNextTargetLane } from '../game/reverse.js';
+import { createRenderEngine } from '../render/engine.js';
 
 export class GameApp {
   constructor({
@@ -50,6 +51,7 @@ export class GameApp {
       },
     };
 
+    this.renderBridge = null;
     this.stepReverse = this.stepReverse.bind(this);
   }
 
@@ -57,7 +59,23 @@ export class GameApp {
     this.loadPersistence();
     this.elements.start.disabled = false;
     this.updateHud();
+    this.setupRenderBridge();
     this.setupEventListeners();
+  }
+
+  setupRenderBridge() {
+    if (!this.elements.sceneRoot) {
+      console.warn('Scene root missing; three.js renderer not initialised.');
+      return;
+    }
+
+    this.renderBridge = createRenderEngine({
+      container: this.elements.sceneRoot,
+    });
+
+    this.renderBridge.setPhase('idle');
+    this.renderBridge.setPlayerUnits(this.state.playerUnits);
+    this.renderBridge.setEnemyUnits(0);
   }
 
   loadPersistence() {
@@ -84,12 +102,8 @@ export class GameApp {
   }
 
   addLogEntry(message) {
-    const entry = document.createElement('p');
-    entry.innerHTML = message;
-    this.elements.log.prepend(entry);
-    while (this.elements.log.childElementCount > 6) {
-      this.elements.log.removeChild(this.elements.log.lastChild);
-    }
+    const stripped = message.replace(/<[^>]*>/g, '');
+    console.log(`[Math Marauders] ${stripped}`);
   }
 
   updateHud() {
@@ -147,8 +161,6 @@ export class GameApp {
     this.state.targetCountdown = 2.4;
     this.state.paused = false;
     this.state.lastFrameTime = null;
-    this.elements.log.innerHTML = '';
-    this.elements.skirmishLog.innerHTML = '';
     this.elements.reverseGates.innerHTML = '';
     this.elements.reverseProgress.style.width = '0%';
     this.elements.steerInput.value = '50';
@@ -158,6 +170,14 @@ export class GameApp {
       `Run seed <strong>${seed}</strong> locked in. Forward march!`
     );
     this.savePersistence();
+    if (this.renderBridge) {
+      this.renderBridge.setPlayerUnits(this.state.playerUnits);
+      this.renderBridge.setEnemyUnits(0);
+      this.renderBridge.resetGates();
+      this.renderBridge.setPhase('forward');
+      this.renderBridge.setReverseProgress(0);
+      this.renderBridge.setReverseTargetLane(this.state.targetLane);
+    }
   }
 
   startTimer() {
@@ -201,6 +221,17 @@ export class GameApp {
       button.addEventListener('click', () => this.handleGateChoice(gateIndex));
       this.elements.gateOptions.appendChild(button);
     });
+    if (this.renderBridge) {
+      const projections = this.state.currentGates.map((gate) =>
+        applyGate(this.state.playerUnits, gate)
+      );
+      this.renderBridge.showForwardGates({
+        index: this.state.gateIndex,
+        gates: this.state.currentGates,
+        playerCount: this.state.playerUnits,
+        projections,
+      });
+    }
   }
 
   handleGateChoice(index) {
@@ -217,6 +248,14 @@ export class GameApp {
     );
     this.state.gateIndex += 1;
     this.updateHud();
+    if (this.renderBridge) {
+      this.renderBridge.setPlayerUnits(this.state.playerUnits);
+      this.renderBridge.resolveForwardGate({
+        index: this.state.gateIndex - 1,
+        choiceIndex: index,
+        resultingCount: after,
+      });
+    }
     if (this.state.gateIndex >= 3) {
       this.enterSkirmish();
     } else {
@@ -228,17 +267,19 @@ export class GameApp {
     this.updateStage('Forward Run');
     this.setPhase('forward');
     this.renderGateOptions();
+    if (this.renderBridge) {
+      this.renderBridge.setPhase('forward');
+    }
   }
 
   renderSkirmishTimeline(result) {
-    this.elements.skirmishLog.innerHTML = '';
-    result.ticks.forEach((tick) => {
-      const item = document.createElement('div');
-      item.textContent = `Tick ${tick.tick + 1}: -${tick.playerLoss} / -${tick.enemyLoss}`;
-      this.elements.skirmishLog.appendChild(item);
-    });
     this.elements.skirmishTicks.textContent = result.ticks.length;
     this.elements.skirmishDuration.textContent = `${result.durationMs}ms`;
+    this.elements.skirmishSurvivors.textContent = Math.max(
+      0,
+      result.playerRemaining
+    );
+    this.elements.skirmishEnemy.textContent = this.state.enemyCount;
   }
 
   enterSkirmish() {
@@ -259,6 +300,11 @@ export class GameApp {
     this.state.score +=
       Math.max(0, result.playerRemaining) * 18 + (1000 - result.durationMs);
     this.updateHud();
+    if (this.renderBridge) {
+      this.renderBridge.setPhase('skirmish');
+      this.renderBridge.setPlayerUnits(this.state.playerUnits);
+      this.renderBridge.setEnemyUnits(result.enemyRemaining ?? 0);
+    }
     if (this.state.playerUnits <= 0) {
       this.finishRun(false, 'Formation wiped during skirmish.');
     }
@@ -316,9 +362,17 @@ export class GameApp {
         this.state.targetCountdown = 1.6 + this.state.rng() * 1.2;
         this.elements.reverseUnits.textContent = this.state.playerUnits;
         this.updateTargetIndicator();
+        if (this.renderBridge) {
+          this.renderBridge.setPlayerUnits(this.state.playerUnits);
+          this.renderBridge.hideReverseGate();
+          this.renderBridge.setReverseTargetLane(this.state.targetLane);
+        }
       });
       this.elements.reverseGates.appendChild(button);
     });
+    if (this.renderBridge) {
+      this.renderBridge.showReverseGate({ options: gateEntry.options });
+    }
   }
 
   stepReverse(timestamp) {
@@ -364,6 +418,10 @@ export class GameApp {
         Math.round((1 - progress) * 40 + this.state.playerUnits / 2)
       )}m`;
       this.updateHud();
+      if (this.renderBridge) {
+        this.renderBridge.setPlayerUnits(this.state.playerUnits);
+        this.renderBridge.setReverseProgress(progress);
+      }
 
       this.state.reverseGateQueue.forEach((gateEntry) => {
         if (!gateEntry.resolved && progress >= gateEntry.threshold) {
@@ -406,6 +464,12 @@ export class GameApp {
     this.state.lastFrameTime = null;
     this.cancelReverseAnimation();
     this.state.reverseAnimationId = requestAnimationFrame(this.stepReverse);
+    if (this.renderBridge) {
+      this.renderBridge.setPhase('reverse');
+      this.renderBridge.setPlayerUnits(this.state.playerUnits);
+      this.renderBridge.setReverseProgress(0);
+      this.renderBridge.setReverseTargetLane(this.state.targetLane);
+    }
   }
 
   cancelReverseAnimation() {
@@ -442,6 +506,10 @@ export class GameApp {
     const stars = this.calculateStars(finalScore);
     this.renderEndCard(success, finalScore, stars);
     this.persistRun(finalScore, stars);
+    if (this.renderBridge) {
+      this.renderBridge.setPhase('idle');
+      this.renderBridge.setEnemyUnits(0);
+    }
   }
 
   renderEndCard(success, finalScore, stars) {
@@ -534,6 +602,9 @@ export class GameApp {
     this.elements.steerInput.addEventListener('input', (event) => {
       const value = Number(event.target.value) / 100;
       this.state.sliderPosition = value;
+      if (this.renderBridge) {
+        this.renderBridge.setSteerPosition(value);
+      }
     });
 
     document.addEventListener('visibilitychange', () => {

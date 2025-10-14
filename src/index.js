@@ -2,6 +2,7 @@ import { GameApp } from './app/controller.js';
 
 function collectElements(doc) {
   return {
+    sceneRoot: doc.querySelector('[data-scene-root]'),
     start: doc.querySelector('[data-start]'),
     overlayRestart: doc.querySelector('[data-overlay-restart]'),
     overlay: doc.querySelector('[data-overlay]'),
@@ -12,13 +13,13 @@ function collectElements(doc) {
     timer: doc.querySelector('[data-timer]'),
     units: doc.querySelector('[data-units]'),
     stageLabel: doc.querySelector('[data-stage-label]'),
-    log: doc.querySelector('[data-log]'),
     gatePanel: doc.querySelector('[data-gate-panel]'),
     gateOptions: doc.querySelector('[data-gate-options]'),
     skirmishPanel: doc.querySelector('[data-skirmish-panel]'),
-    skirmishLog: doc.querySelector('[data-skirmish-log]'),
     skirmishTicks: doc.querySelector('[data-skirmish-ticks]'),
     skirmishDuration: doc.querySelector('[data-skirmish-duration]'),
+  skirmishSurvivors: doc.querySelector('[data-skirmish-survivors]'),
+  skirmishEnemy: doc.querySelector('[data-skirmish-enemy]'),
     skirmishNext: doc.querySelector('[data-skirmish-next]'),
     reversePanel: doc.querySelector('[data-reverse-panel]'),
     reverseUnits: doc.querySelector('[data-reverse-units]'),

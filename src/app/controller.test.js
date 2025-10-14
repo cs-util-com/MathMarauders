@@ -21,13 +21,14 @@ function createDom() {
       </header>
       <section>
         <div data-stage-label></div>
-        <div data-log></div>
+        <div data-scene-root></div>
         <div data-gate-panel></div>
         <div data-gate-options></div>
         <div data-skirmish-panel></div>
-        <div data-skirmish-log></div>
         <div data-skirmish-ticks></div>
         <div data-skirmish-duration></div>
+        <div data-skirmish-survivors></div>
+        <div data-skirmish-enemy></div>
         <button data-skirmish-next></button>
         <div data-reverse-panel></div>
         <div data-reverse-units></div>
@@ -60,13 +61,14 @@ function createDom() {
     timer: query('[data-timer]'),
     units: query('[data-units]'),
     stageLabel: query('[data-stage-label]'),
-    log: query('[data-log]'),
+  sceneRoot: query('[data-scene-root]'),
     gatePanel: query('[data-gate-panel]'),
     gateOptions: query('[data-gate-options]'),
     skirmishPanel: query('[data-skirmish-panel]'),
-    skirmishLog: query('[data-skirmish-log]'),
     skirmishTicks: query('[data-skirmish-ticks]'),
     skirmishDuration: query('[data-skirmish-duration]'),
+  skirmishSurvivors: query('[data-skirmish-survivors]'),
+  skirmishEnemy: query('[data-skirmish-enemy]'),
     skirmishNext: query('[data-skirmish-next]'),
     reversePanel: query('[data-reverse-panel]'),
     reverseUnits: query('[data-reverse-units]'),
@@ -103,7 +105,6 @@ test('forward phase renders gate options and applies choices', () => {
   const before = app.state.playerUnits;
   app.handleGateChoice(0);
   expect(app.state.playerUnits).not.toBe(before);
-  expect(elements.log.childElementCount).toBeGreaterThan(0);
 });
 
 // why this test matters: the skirmish phase must leave survivors ready for the reverse chase when the player makes good choices.
