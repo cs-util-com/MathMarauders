@@ -1,4 +1,6 @@
-## Math Marauders — Playable Web Slice
+# Math Marauders
+
+## Current state: Playable Web Slice
 
 This repository now contains a playable web prototype of the Math Marauders loop, built as a lightweight, no-build web app. The slice focuses on the forward gate decisions, a deterministic skirmish resolution, and an interactive reverse chase that uses touch-friendly steering. Scores, seeds, and star ratings persist locally so each run feels like a tight arcade challenge lasting about two minutes.
 
@@ -24,6 +26,20 @@ Unit tests, duplication checks, and dependency guardrails are wired into `npm te
 - Rendering stays UI-driven instead of full 3D to respect the static, no-build workflow. Camera rails, mesh budgets, and particle systems are represented through HUD cues and textual feedback.
 - Reverse chase physics compress the 3D pursuit into a slider-based attrition model. Lane alignment still matters, but without physics-driven units.
 - Waves share a single loop with adjustable seeds. Extending to multi-wave progression will primarily involve expanding the persistence map and tuning gate templates.
+
+# Next goals: 3D implementation requirements (active scope)
+
+- Ship and iterate on the production three.js scene. UI-only or 2D stand-ins do
+  not satisfy this spec.
+- Maintain real meshes, instancing, selective bloom, and particle systems in
+  line with the “Visual Direction” and “Particles & VFX” sections.
+- Drive performance guards from actual renderer metrics; stand-in animations or
+  fake effects are prohibited.
+- Keep DOM HUD elements lightweight, but all world entities must exist as
+  three.js assets with deterministic behaviour.
+
+The remainder of this README is the authoritative implementation brief for the
+current game and must be followed as-is.
 
 ## 1) Goal & Core Loop
 
@@ -263,8 +279,9 @@ Unit tests, duplication checks, and dependency guardrails are wired into `npm te
   - Start → finish happy path; restart is instant.
   - Two known seeds produce identical runs and scores.
   - UI responsiveness: slider drag latency under threshold.
+  - WebGL scene boots, renders lane/units/trails, and responds to performance guard toggles.
 
-- **Visual checks:** screenshot diff of HUD & gate legibility across DPRs (1.0/2.0/3.0).
+- **Visual checks:** screenshot diff of HUD & gate legibility across DPRs (1.0/2.0/3.0) plus WebGL captures that confirm meshes, bloom, and particle budgets stay within spec.
 
 ## 15) Build & Delivery
 
@@ -273,12 +290,14 @@ Unit tests, duplication checks, and dependency guardrails are wired into `npm te
 - **Hosting:** static hosting (GitHub Pages/Netlify/etc.).
 - **Shareable seed:** via querystring; copy-to-clipboard button on end card (optional later).
 - **Documentation:** Inline JSDoc on public APIs; keep architecture and tooling notes current in `README.md`/`docs/`.
+- **3D deliverable:** deployments must include the live three.js scene with all world entities active; UI-only fallbacks are not acceptable.
 
 ## 16) Non-Goals (v1)
 
 - Multiplayer, accounts, cloud saves.
 - Heavy post-processing (DOF, motion blur, OutlinePass).
 - Complex physics or per-soldier IK.
+- Replacing three.js rendering with DOM-only or flat UI mockups.
 
 ---
 
@@ -664,3 +683,4 @@ test('delta flashes for 250ms then clears', async ({ page }) => {
 5. **Append learnings** to `docs/implementation-progress.md` after each iteration (serves as project memory & devlog).
 6. **CI-friendly:** avoid interactive prompts; stable output; use line reporters.
 7. **Performance budgets:** draw calls < 150; active particles ≤ ~250; watch dev HUD (optional) that prints counters.
+8. **Keep it 3D:** never replace the three.js scene with UI-only stand-ins; every iteration should evolve the live renderer.
