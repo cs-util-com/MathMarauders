@@ -1,1 +1,522 @@
-TODO
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Math Marauders</title>
+    <style>
+      :root {
+        --bg-start: #12151a;
+        --bg-end: #1e2633;
+        --text-primary: #f5f7ff;
+        --text-muted: #9aa4c6;
+        --accent-pink: #ff5fa2;
+        --accent-teal: #33d6a6;
+        --accent-yellow: #ffd166;
+        --accent-blue: #00d1ff;
+        --danger: #ff7a59;
+        --card-bg: rgba(18, 21, 26, 0.78);
+        --panel-bg: rgba(30, 38, 51, 0.75);
+        --border-soft: rgba(255, 255, 255, 0.08);
+        --shadow-soft: 0 24px 48px rgba(12, 14, 18, 0.35);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          'Inter',
+          'Segoe UI',
+          system-ui,
+          -apple-system,
+          sans-serif;
+        color: var(--text-primary);
+        background:
+          radial-gradient(
+            circle at 20% 20%,
+            rgba(255, 95, 162, 0.18),
+            transparent 60%
+          ),
+          radial-gradient(
+            circle at 80% 0%,
+            rgba(51, 214, 166, 0.16),
+            transparent 55%
+          ),
+          linear-gradient(160deg, var(--bg-start), var(--bg-end));
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+      }
+
+      .app {
+        width: min(960px, 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 1.2rem 1rem 1.5rem;
+        gap: 1rem;
+        position: relative;
+      }
+
+      header.hud {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        background: var(--card-bg);
+        padding: 1rem;
+        border-radius: 18px;
+        border: 1px solid var(--border-soft);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .hud__row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .badge {
+        background: rgba(255, 95, 162, 0.16);
+        border-radius: 999px;
+        padding: 0.35rem 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+
+      .hud__metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+        flex: 1 1 220px;
+      }
+
+      .metric {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        padding: 0.65rem 0.75rem;
+        border-radius: 14px;
+        background: rgba(18, 21, 26, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .metric__label {
+        text-transform: uppercase;
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+        color: var(--text-muted);
+      }
+
+      .metric__value {
+        font-size: 1.45rem;
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+      }
+
+      .metric__delta {
+        font-size: 0.9rem;
+        font-weight: 600;
+        opacity: 0;
+        transform: translateY(6px);
+        transition:
+          opacity 160ms ease,
+          transform 160ms ease;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .metric__delta.delta--active {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .metric__delta[data-delta-tone='positive'] {
+        color: var(--accent-teal);
+      }
+
+      .metric__delta[data-delta-tone='negative'] {
+        color: var(--danger);
+      }
+
+      .hud__status {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .status-chip {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        padding: 0.3rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      .status-chip--accent {
+        background: rgba(51, 214, 166, 0.2);
+        color: var(--accent-teal);
+      }
+
+      .status-chip--ghost {
+        background: rgba(0, 209, 255, 0.16);
+        color: var(--accent-blue);
+      }
+
+      .status-chip--mute {
+        background: rgba(255, 122, 89, 0.2);
+        color: var(--danger);
+      }
+
+      .control {
+        background: rgba(18, 21, 26, 0.75);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 999px;
+        padding: 0.55rem 1.1rem;
+        color: var(--text-primary);
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 120ms ease;
+      }
+
+      .control:hover {
+        transform: translateY(-1px);
+      }
+
+      .control--active {
+        background: rgba(255, 95, 162, 0.25);
+        color: var(--accent-pink);
+      }
+
+      .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+
+      main.board {
+        flex: 1 1 auto;
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: minmax(0, 1fr);
+        position: relative;
+      }
+
+      .forward-panel {
+        background: var(--panel-bg);
+        border-radius: 20px;
+        border: 1px solid var(--border-soft);
+        padding: 1.2rem;
+        box-shadow: var(--shadow-soft);
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+      }
+
+      .forward-panel h1 {
+        margin: 0;
+        font-size: clamp(1.6rem, 4vw, 2.2rem);
+        letter-spacing: 0.04em;
+      }
+
+      .forward-panel__hint {
+        margin: 0;
+        color: var(--text-muted);
+      }
+
+      .gate-grid {
+        display: grid;
+        gap: 0.8rem;
+      }
+
+      .gate-card {
+        text-align: left;
+        padding: 1rem;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition:
+          transform 140ms ease,
+          box-shadow 140ms ease;
+      }
+
+      .gate-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25);
+      }
+
+      .gate-card__label {
+        display: block;
+        font-size: 1.35rem;
+        margin-bottom: 0.35rem;
+      }
+
+      .gate-card__description {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.74);
+      }
+
+      .gate-card--positive {
+        background: rgba(51, 214, 166, 0.18);
+      }
+
+      .gate-card--negative {
+        background: rgba(255, 122, 89, 0.22);
+      }
+
+      .gate-card--boost {
+        background: rgba(255, 209, 102, 0.2);
+        color: #2a2430;
+      }
+
+      .gate-card--hazard {
+        background: rgba(0, 209, 255, 0.18);
+      }
+
+      .log-panel {
+        background: rgba(18, 21, 26, 0.72);
+        border-radius: 20px;
+        border: 1px solid var(--border-soft);
+        padding: 1rem 1.2rem;
+        box-shadow: var(--shadow-soft);
+        max-height: 260px;
+        overflow-y: auto;
+      }
+
+      .log-panel h2 {
+        margin: 0 0 0.6rem;
+        font-size: 1rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      .log-panel ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        font-size: 0.9rem;
+      }
+
+      .end-card {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(18, 21, 26, 0.95);
+        border-radius: 24px;
+        padding: 1.5rem 1.8rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        text-align: center;
+        width: min(320px, 90%);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+        z-index: 5;
+      }
+
+      .end-card__stars {
+        display: flex;
+        justify-content: center;
+        gap: 0.4rem;
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .star {
+        color: rgba(255, 255, 255, 0.3);
+      }
+
+      .star--filled {
+        color: var(--accent-yellow);
+      }
+
+      .end-card__summary {
+        margin: 0;
+        color: var(--text-muted);
+      }
+
+      footer.controls-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        background: var(--card-bg);
+        padding: 0.9rem 1.2rem;
+        border-radius: 18px;
+        border: 1px solid var(--border-soft);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .slider {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        width: 160px;
+      }
+
+      .slider input[type='range'] {
+        width: 100%;
+      }
+
+      .cta {
+        flex: 1;
+        border: none;
+        background: linear-gradient(
+          135deg,
+          var(--accent-pink),
+          var(--accent-teal)
+        );
+        color: #0d1016;
+        font-weight: 700;
+        padding: 0.9rem 1.2rem;
+        border-radius: 999px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        box-shadow: 0 18px 36px rgba(255, 95, 162, 0.35);
+        transition:
+          transform 140ms ease,
+          box-shadow 140ms ease;
+      }
+
+      .cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 22px 40px rgba(255, 95, 162, 0.4);
+      }
+
+      .pause-menu {
+        position: absolute;
+        top: 100px;
+        right: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 1rem;
+        border-radius: 16px;
+        background: rgba(18, 21, 26, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: var(--shadow-soft);
+        z-index: 10;
+      }
+
+      .pause-menu button {
+        background: rgba(255, 255, 255, 0.08);
+        border: none;
+        color: var(--text-primary);
+        padding: 0.6rem 0.9rem;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      @media (min-width: 720px) {
+        main.board {
+          grid-template-columns: 2fr 1fr;
+        }
+
+        .gate-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .forward-panel {
+          min-height: 360px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="hud">
+        <div class="hud__row">
+          <span class="badge" data-wave-value>Wave 1</span>
+          <div class="hud__metrics">
+            <div class="metric">
+              <span class="metric__label">Score</span>
+              <span class="metric__value" data-score-value>0</span>
+            </div>
+            <div class="metric">
+              <span class="metric__label">Units</span>
+              <span class="metric__value" data-units-value>24</span>
+              <span class="metric__delta" data-units-delta>+0</span>
+            </div>
+            <div class="metric">
+              <span class="metric__label">Timer</span>
+              <span class="metric__value" data-timer-value>00:00</span>
+            </div>
+          </div>
+          <div class="hud__status">
+            <span class="status-chip" data-phase-value>Ready</span>
+            <span class="status-chip status-chip--accent" data-pause-status
+              >Live</span
+            >
+            <span class="status-chip status-chip--ghost" data-effects-value
+              >Ultra-Lean</span
+            >
+            <span
+              class="status-chip status-chip--mute"
+              data-mute-indicator
+              hidden
+              >Muted</span
+            >
+          </div>
+          <button
+            class="control"
+            type="button"
+            data-action="pause"
+            aria-expanded="false"
+          >
+            Pause
+          </button>
+        </div>
+        <div class="meta-row">
+          <span>Seed: <strong data-seed-value>—</strong></span>
+          <span>Chase: <strong data-chase-status>Horde quiet...</strong></span>
+          <span>Steering: <strong data-steering-value>0%</strong></span>
+        </div>
+      </header>
+      <main class="board">
+        <section class="forward-panel">
+          <h1>Math Marauders</h1>
+          <p class="forward-panel__hint" data-forward-hint>
+            Tap Start to begin.
+          </p>
+          <div class="gate-grid" data-gate-container></div>
+        </section>
+        <aside class="log-panel">
+          <h2>Mission Log</h2>
+          <ol data-log-list></ol>
+        </aside>
+        <div class="end-card" data-end-card hidden>
+          <div class="end-card__stars" data-star-list></div>
+          <p class="end-card__summary" data-run-summary></p>
+        </div>
+      </main>
+      <footer class="controls-bar">
+        <label class="slider">
+          <span>Steering</span>
+          <input type="range" min="-100" max="100" value="0" data-steering />
+        </label>
+        <button class="cta" type="button" data-action="start">Start Run</button>
+      </footer>
+      <div class="pause-menu" data-pause-menu hidden>
+        <button type="button" data-action="resume">Resume</button>
+        <button type="button" data-action="restart">Restart</button>
+        <button type="button" data-action="toggle-mute">Mute</button>
+        <button type="button" data-action="toggle-effects">
+          Switch to Low FX
+        </button>
+      </div>
+    </div>
+    <script type="module" src="./src/index.js"></script>
+  </body>
+</html>
