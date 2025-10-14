@@ -1,1 +1,364 @@
-TODO
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Math Marauders</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --pink: #ff5fa2;
+        --teal: #33d6a6;
+        --yellow: #ffd166;
+        --player: #00d1ff;
+        --enemy: #ff7a59;
+        --bg-top: #12151a;
+        --bg-bottom: #1e2633;
+        --panel-bg: rgba(18, 21, 26, 0.74);
+        --panel-border: rgba(255, 255, 255, 0.08);
+        font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(160deg, var(--bg-top), var(--bg-bottom));
+        color: #f1f5f9;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      body.is-degraded {
+        filter: saturate(0.85);
+      }
+
+      main {
+        width: min(960px, 100vw);
+        padding: 16px;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 16px;
+      }
+
+      .hud {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        font-size: clamp(1rem, 2vw, 1.5rem);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .hud__timer {
+        font-variant-numeric: tabular-nums;
+      }
+
+      .hud__delta {
+        font-weight: 600;
+        transition: opacity 0.2s ease;
+      }
+
+      .hud__delta[data-state='gain'] {
+        color: var(--teal);
+      }
+
+      .hud__delta[data-state='loss'] {
+        color: #ff6b6b;
+      }
+
+      .hud__delta[hidden] {
+        opacity: 0;
+      }
+
+      .arena {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .phase-panel {
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 16px;
+        padding: 16px;
+        display: grid;
+        gap: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+      }
+
+      .phase-panel__title {
+        font-size: clamp(1.1rem, 2.4vw, 1.4rem);
+        font-weight: 700;
+      }
+
+      .phase-panel__counts {
+        display: flex;
+        justify-content: space-between;
+        font-size: clamp(0.9rem, 2vw, 1.1rem);
+      }
+
+      .phase-panel__count[data-faction='player'] {
+        color: var(--player);
+      }
+
+      .phase-panel__count[data-faction='enemy'] {
+        color: var(--enemy);
+      }
+
+      .gate-rail {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .gate-card {
+        width: clamp(120px, 26vw, 180px);
+        min-height: 140px;
+        padding: 16px;
+        border-radius: 18px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.08);
+        color: #111;
+        font-weight: 700;
+        font-size: clamp(1.4rem, 4vw, 2.2rem);
+        text-align: center;
+        display: grid;
+        gap: 8px;
+        align-items: center;
+        justify-items: center;
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .gate-card--add {
+        background: linear-gradient(
+          160deg,
+          rgba(51, 214, 166, 0.9),
+          rgba(51, 214, 166, 0.6)
+        );
+      }
+
+      .gate-card--subtract {
+        background: linear-gradient(
+          160deg,
+          rgba(255, 95, 162, 0.9),
+          rgba(255, 95, 162, 0.6)
+        );
+      }
+
+      .gate-card--multiply {
+        background: linear-gradient(
+          160deg,
+          rgba(255, 209, 102, 0.9),
+          rgba(255, 209, 102, 0.6)
+        );
+      }
+
+      .gate-card--divide {
+        background: linear-gradient(
+          160deg,
+          rgba(0, 209, 255, 0.9),
+          rgba(0, 209, 255, 0.6)
+        );
+      }
+
+      .gate-card:active,
+      .gate-card:focus {
+        transform: translateY(4px) scale(0.98);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        outline: none;
+      }
+
+      [data-panel='gates'][data-state='hidden'] {
+        display: none;
+      }
+
+      [data-panel='gates'][data-state='locked'] .gate-card {
+        pointer-events: none;
+        opacity: 0.7;
+      }
+
+      .controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .steering {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 999px;
+        padding: 12px;
+      }
+
+      .steering label {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .steering input[type='range'] {
+        accent-color: var(--teal);
+        width: clamp(140px, 40vw, 240px);
+        height: 16px;
+        transition: transform 0.2s ease;
+      }
+
+      .steering input[type='range'].is-active {
+        transform: scale(1.08);
+      }
+
+      .pause-button,
+      .start-button,
+      .pause-menu button {
+        background: var(--pink);
+        color: #fff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 999px;
+        font-size: clamp(1rem, 2.4vw, 1.2rem);
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 10px 24px rgba(255, 95, 162, 0.35);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .pause-button {
+        padding: 10px 18px;
+        font-size: 0.95rem;
+      }
+
+      .pause-button:hover,
+      .start-button:hover,
+      .pause-menu button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(255, 95, 162, 0.45);
+      }
+
+      .start-button {
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+      }
+
+      .pause-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 12, 16, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+      }
+
+      .pause-menu {
+        background: var(--panel-bg);
+        border-radius: 20px;
+        padding: 24px;
+        display: grid;
+        gap: 16px;
+        border: 1px solid var(--panel-border);
+        min-width: min(320px, 90vw);
+      }
+
+      .pause-menu h2 {
+        margin: 0;
+        font-size: 1.3rem;
+      }
+
+      .stars {
+        text-align: center;
+        font-size: clamp(1.2rem, 3vw, 1.6rem);
+        letter-spacing: 6px;
+      }
+
+      @media (min-width: 720px) {
+        main {
+          grid-template-rows: auto 1fr auto;
+        }
+        .arena {
+          grid-template-columns: 1fr;
+        }
+        .controls {
+          justify-content: space-between;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header class="hud">
+        <span data-hud="timer" class="hud__timer">01:30</span>
+        <span data-hud="score">0</span>
+        <span data-hud="delta" class="hud__delta" hidden>+0</span>
+        <button class="pause-button" data-action="pause">Pause</button>
+      </header>
+
+      <section class="arena">
+        <article class="phase-panel">
+          <div class="phase-panel__title" data-panel="phase">
+            Ready to deploy
+          </div>
+          <div class="phase-panel__counts">
+            <span
+              class="phase-panel__count"
+              data-panel="player-count"
+              data-faction="player"
+              >12</span
+            >
+            <span
+              class="phase-panel__count"
+              data-panel="enemy-count"
+              data-faction="enemy"
+              >10</span
+            >
+          </div>
+          <div class="gate-rail" data-panel="gates" data-state="hidden"></div>
+          <div class="stars" data-panel="stars">☆ ☆ ☆</div>
+        </article>
+      </section>
+
+      <footer class="controls">
+        <div class="steering">
+          <label for="steering">Steering</label>
+          <input
+            id="steering"
+            data-control="steering"
+            type="range"
+            min="0"
+            max="100"
+            value="50"
+          />
+        </div>
+        <button class="start-button" data-action="start">Start Run</button>
+      </footer>
+    </main>
+
+    <aside class="pause-overlay" data-panel="pause-overlay" hidden>
+      <div class="pause-menu">
+        <h2>Paused</h2>
+        <button data-action="resume">Resume</button>
+        <button data-action="restart">Restart</button>
+        <button data-action="mute">Toggle Bloom</button>
+      </div>
+    </aside>
+
+    <script type="module" src="./src/index.js"></script>
+  </body>
+</html>
