@@ -106,6 +106,7 @@ export function createGateLayer(scene, bloomEffect) {
   );
   reversePrompt.rotation.x = -Math.PI / 2;
   reversePrompt.position.set(0, 0.05, -10);
+  reversePrompt.name = 'ReversePrompt';
   reversePrompt.visible = false;
   root.add(reversePrompt);
 
