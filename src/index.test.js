@@ -1,12 +1,41 @@
-// This is a placeholder test file for index.js.
-// Since index.js currently only has a console.log,
-// a meaningful test isn't really possible without
-// more complex setup (e.g., mocking console.log or
-// integrating with an HTML environment if it manipulates the DOM).
+import { jest } from '@jest/globals';
 
-describe('Index', () => {
-  test('placeholder test', () => {
-    // Replace with actual tests once index.js has testable logic
-    expect(true).toBe(true);
+jest.mock('./app.js', () => ({
+  initApp: jest.fn(),
+}));
+
+const { initApp } = require('./app.js');
+
+function setReadyState(state) {
+  Object.defineProperty(document, 'readyState', {
+    configurable: true,
+    value: state,
+  });
+}
+
+describe('index bootstrapping', () => {
+  afterEach(() => {
+    initApp.mockClear();
+    setReadyState('complete');
+  });
+
+  test('initialises immediately when DOM is already ready', async () => {
+    // why this test matters: ensures eager boots do not wait for events unnecessarily.
+    setReadyState('interactive');
+    await jest.isolateModulesAsync(async () => {
+      await import('./index.js');
+    });
+    expect(initApp).toHaveBeenCalledTimes(1);
+  });
+
+  test('waits for DOMContentLoaded when still loading', async () => {
+    // why this test matters: prevents init from running before the HUD exists.
+    setReadyState('loading');
+    await jest.isolateModulesAsync(async () => {
+      await import('./index.js');
+    });
+    expect(initApp).not.toHaveBeenCalled();
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    expect(initApp).toHaveBeenCalledTimes(1);
   });
 });
