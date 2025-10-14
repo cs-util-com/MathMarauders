@@ -1,8 +1,8 @@
 {
-    "someData": [
-        {
-            "id": "123",
-            "title": "Abc",            
-        }
-    ]
+  "someData": [
+    {
+      "id": "123",
+      "title": "Abc"
+    }
+  ]
 }
