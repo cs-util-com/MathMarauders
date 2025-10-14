@@ -1,10 +1,4 @@
-import {
-  WebGLRenderer,
-  Scene,
-  Color,
-  Clock,
-  Vector2,
-} from 'three';
+import { WebGLRenderer, Scene, Color, Clock } from 'three';
 import {
   EffectComposer,
   RenderPass,
@@ -50,7 +44,7 @@ function isWebGLAvailable() {
       if (gl) {
         hasContext = true;
       }
-    } catch (error) {
+    } catch {
       // ignore probe errors
     }
   });
@@ -131,7 +125,6 @@ export function createRenderEngine({ container }) {
 
   const clock = new Clock();
   let animationId = null;
-  const size = new Vector2();
 
   function resizeRenderer() {
     const { clientWidth, clientHeight } = container;

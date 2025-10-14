@@ -336,6 +336,9 @@ export class GameApp {
   updateTargetIndicator() {
     const percent = this.state.targetLane * 100;
     this.elements.targetIndicator.style.left = `${percent}%`;
+    if (this.renderBridge) {
+      this.renderBridge.setReverseTargetLane(this.state.targetLane);
+    }
   }
 
   renderReverseGate(gateEntry) {

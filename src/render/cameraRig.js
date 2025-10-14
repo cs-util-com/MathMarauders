@@ -74,7 +74,7 @@ export function createCameraRig() {
     camera,
     setPhase(nextPhase) {
       const mapped =
-        nextPhase === 'reverse-gate' ? 'reverse' : nextPhase ?? 'idle';
+        nextPhase === 'reverse-gate' ? 'reverse' : (nextPhase ?? 'idle');
       if (!(mapped in samples)) {
         phase = mapped === 'idle' ? 'idle' : 'forward';
       } else {

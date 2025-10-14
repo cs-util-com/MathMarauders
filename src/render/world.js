@@ -33,7 +33,10 @@ function createGradientBackdrop() {
     bottom.b,
   ]);
   geometry.setAttribute('color', new BufferAttribute(colors, 3));
-  const material = new MeshBasicMaterial({ vertexColors: true, depthWrite: false });
+  const material = new MeshBasicMaterial({
+    vertexColors: true,
+    depthWrite: false,
+  });
   const mesh = new Mesh(geometry, material);
   mesh.position.set(0, 20, -20);
   mesh.rotation.x = -Math.PI / 12;
@@ -64,7 +67,9 @@ function createLane() {
   rightEdge.position.x = LANE_WIDTH / 2 - 0.12;
   root.add(rightEdge);
 
-  const dashMaterial = new MeshBasicMaterial({ color: 'rgba(255,255,255,0.6)' });
+  const dashMaterial = new MeshBasicMaterial({
+    color: 'rgba(255,255,255,0.6)',
+  });
   const dashGeometry = new PlaneGeometry(0.12, 2); // repeated segments
   for (let i = 0; i < 16; i += 1) {
     const dash = new Mesh(dashGeometry, dashMaterial);

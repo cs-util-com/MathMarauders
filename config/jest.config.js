@@ -27,6 +27,12 @@ module.exports = {
       statements: 80,
     },
   },
+  moduleNameMapper: {
+    '^three$': '<rootDir>/src/__mocks__/three.js',
+    '^three/addons/(.*)$': '<rootDir>/src/__mocks__/three-addons/$1',
+    '^postprocessing$': '<rootDir>/src/__mocks__/postprocessing.js',
+  },
+  setupFilesAfterEnv: ['<rootDir>/tests/setupCanvasMock.js'],
   // Transpile ESM test files (and the modules they import) so Jest's CommonJS runtime can execute them:
   transform: {
     '^.+\\.js$': [

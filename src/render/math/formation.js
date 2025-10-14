@@ -5,14 +5,16 @@ const DEFAULT_SPACING = 1.25;
  * Returns an array of { x, y, z } positions sorted from front to back.
  * The formation expands smoothly as counts increase so the camera framing stays predictable.
  */
-export function computeFormationPositions(count, { spacing = DEFAULT_SPACING } = {}) {
+export function computeFormationPositions(
+  count,
+  { spacing = DEFAULT_SPACING } = {}
+) {
   if (!Number.isFinite(count) || count <= 0) {
     return [];
   }
 
   const safeCount = Math.floor(count);
   const columns = Math.ceil(Math.sqrt(safeCount));
-  const rows = Math.ceil(safeCount / columns);
   const positions = [];
 
   for (let index = 0; index < safeCount; index += 1) {
