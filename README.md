@@ -11,22 +11,6 @@ Math Marauders is a quick-hit, mobile-first arcade run where every wave forces t
 - **Reverse chase pressure:** Touch-friendly steering keeps the formation aligned while reverse gates and chaser surges test leftover strength.
 - **Persistent arcade loop:** Local storage tracks scores, stars, and seeds, keeping restarts instant and competition alive.
 
-### Running the Prototype
-
-```bash
-npm install
-npm run serve:static
-# open http://localhost:4173/
-```
-
-Unit tests, duplication checks, and dependency guardrails are wired into `npm test` per the workflow documented in `AGENTS.md`.
-
-### Known Simplifications
-
-- Rendering stays UI-driven instead of full 3D to respect the static, no-build workflow. Camera rails, mesh budgets, and particle systems are represented through HUD cues and textual feedback.
-- Reverse chase physics compress the 3D pursuit into a slider-based attrition model. Lane alignment still matters, but without physics-driven units.
-- Waves share a single loop with adjustable seeds. Extending to multi-wave progression will primarily involve expanding the persistence map and tuning gate templates.
-
 # Next goals: 3D implementation requirements (active scope)
 
 - Ship and iterate on the production three.js scene. UI-only or 2D stand-ins do
