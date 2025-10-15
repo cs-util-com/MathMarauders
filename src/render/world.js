@@ -68,7 +68,9 @@ function createLane() {
   root.add(rightEdge);
 
   const dashMaterial = new MeshBasicMaterial({
-    color: 'rgba(255,255,255,0.6)',
+    color: '#ffffff',
+    transparent: true,
+    opacity: 0.6,
   });
   const dashGeometry = new PlaneGeometry(0.12, 2); // repeated segments
   for (let i = 0; i < 16; i += 1) {

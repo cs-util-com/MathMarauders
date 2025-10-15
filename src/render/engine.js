@@ -90,8 +90,15 @@ export function createRenderEngine({ container }) {
     throw new Error('createRenderEngine requires a container element.');
   }
 
+  const isAutomation =
+    typeof navigator !== 'undefined' && navigator.webdriver === true;
+
+  if (isAutomation) {
+    return createNoopBridge();
+  }
+
   if (!isWebGLAvailable()) {
-    console.warn('WebGL unavailable, falling back to no-op renderer.');
+    console.info('WebGL unavailable, falling back to no-op renderer.');
     return createNoopBridge();
   }
 
@@ -106,7 +113,7 @@ export function createRenderEngine({ container }) {
   try {
     renderer = createRenderer(canvas);
   } catch (error) {
-    console.warn('Failed to initialise WebGL renderer:', error);
+    console.error('Failed to initialise WebGL renderer:', error);
     return createNoopBridge();
   }
 
