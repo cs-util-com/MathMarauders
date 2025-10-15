@@ -67,7 +67,7 @@ current game and must be followed as-is.
 - **Bottom:** big Start/Restart pill. Only shown when not running.
 - **Top-right:** pause menu (resume/restart/mute).
 - **Gate labels (in-scene):** giant operator + number, color-coded (+ green, − red, × yellow, ÷ blue); the numeral card is in the **bloom include list**.
-- **Number formatting:** compact (1.2k); 
+- **Number formatting:** compact (1.2k);
 - **Transitions:** 120–160 ms fades/slides; no bounces.
 
 ## 6) Particles & VFX (Ultra-Lean Clarity)
