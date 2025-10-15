@@ -2,14 +2,14 @@
 
 ## Current state: Playable Web Slice
 
-This repository now contains a playable web prototype of the Math Marauders loop, built as a lightweight, no-build web app. The slice focuses on the forward gate decisions, a deterministic skirmish resolution, and an interactive reverse chase that uses touch-friendly steering. Scores, seeds, and star ratings persist locally so each run feels like a tight arcade challenge lasting about two minutes.
+Math Marauders is a quick-hit, mobile-first arcade run where every wave forces tight arithmetic choices under pressure. Pick a gate to grow or trim your squad, march straight into a deterministic skirmish, then drag a steering slider to outrun the chaser on the sprint back home. Runs are fully seeded, wrap in roughly two minutes, and persist highscores, stars, and starting seeds locally so each attempt can be replayed or shared.
 
 ### Feature Highlights
 
-- **Forward run gates:** Pick between two math gates per decision point. Each option shows its projected troop count so the trade-offs are clear before you commit.
-- **Deterministic skirmish:** Battles resolve automatically using the spec’s volley timing and casualty formula. A combat log lists per-tick losses so balance tuning stays transparent.
-- **Reverse chase survival:** Drag a chunky steering slider to keep the formation aligned with moving lane targets. Two additional reverse gates offer clutch recovery moments while the chaser pressure ramps up.
-- **HUD polish:** Compact score formatting, color-coded gate cards, and a pause/resume HUD mirror the spec’s minimal arcade vibe. LocalStorage keeps the last seed, best stars, and high score.
+- **Forward gate dilemmas:** Two math gates per checkpoint, each previewing its projected troop count to surface the trade-off before you commit.
+- **Deterministic skirmishes:** Volley exchanges resolve on a fixed cadence with transparent casualty tracking, making tuning and replay comparisons straightforward.
+- **Reverse chase pressure:** Touch-friendly steering keeps the formation aligned while reverse gates and chaser surges test leftover strength.
+- **Persistent arcade loop:** Local storage tracks scores, stars, and seeds, keeping restarts instant and competition alive.
 
 ### Running the Prototype
 
