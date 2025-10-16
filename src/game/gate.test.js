@@ -1,4 +1,9 @@
-import { applyGate, generateGateOptions, formatGateLabel } from './gate.js';
+import {
+  applyGate,
+  generateGateOptions,
+  formatGateLabel,
+  getGateColor,
+} from './gate.js';
 import { mulberry32 } from '../utils/random.js';
 
 const OPERATORS_REGEX = /[+−×÷]/gu;
@@ -33,6 +38,17 @@ describe('applyGate', () => {
     };
 
     expect(applyGate(10, compositeGate)).toBe(10);
+  });
+
+  // why this test matters: engine should gracefully clamp when a gate definition is missing.
+  test('returns current count when gate is not provided', () => {
+    expect(applyGate(42, null)).toBe(42);
+  });
+
+  // why this test matters: unknown operations should be safely ignored so bad data cannot corrupt state.
+  test('ignores unknown operation types inside composite steps', () => {
+    const gate = { type: 'composite', steps: [{ type: 'noop', value: 99 }] };
+    expect(applyGate(17, gate)).toBe(17);
   });
 });
 
@@ -103,5 +119,38 @@ describe('generateGateOptions', () => {
     });
 
     expect(compositeFound).toBe(true);
+  });
+
+  // why this test matters: RNG clamping logic must handle upper-bound samples without throwing off gate generation.
+  test('supports RNG implementations that hit the upper bound', () => {
+    const rng = () => 1;
+    const gates = generateGateOptions({ rng, wave: 2, currentCount: 14 });
+    expect(gates).toHaveLength(2);
+  });
+});
+
+describe('format helpers', () => {
+  // why this test matters: label rendering falls back to steps when authoring omits a pre-baked label.
+  test('formatGateLabel composes labels from steps when missing', () => {
+    const gate = {
+      type: 'composite',
+      steps: [
+        { type: 'add', value: 4 },
+        { type: 'multiply', value: 3 },
+      ],
+    };
+    expect(formatGateLabel(gate)).toBe('+4×3');
+  });
+
+  // why this test matters: color selection must fall back on first-step metadata for generated gates.
+  test('getGateColor falls back to primary step metadata when color missing', () => {
+    const gate = {
+      type: 'composite',
+      steps: [
+        { type: 'divide', value: 2 },
+        { type: 'add', value: 5 },
+      ],
+    };
+    expect(getGateColor(gate)).toBe('#00d1ff');
   });
 });
