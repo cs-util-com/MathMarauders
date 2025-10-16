@@ -83,11 +83,14 @@ export function createCameraRig() {
       progress = phase === 'idle' ? 1 : 0;
       applyPhasePose();
     },
-    update({ delta, lookTarget }) {
+    update({ delta, lookTarget, forwardOffset = 0 }) {
       if (phase !== 'idle') {
         const duration = PHASE_DURATION[phase] ?? 1.2;
         progress = Math.min(1, progress + delta / duration);
         applyPhasePose();
+        if (phase === 'forward') {
+          camera.position.z -= forwardOffset;
+        }
       }
       updateLook(lookTarget);
     },

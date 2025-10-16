@@ -132,6 +132,7 @@ export function createRenderEngine({ container }) {
 
   const clock = new Clock();
   let animationId = null;
+  let forwardOffset = 0;
 
   function resizeRenderer() {
     const { clientWidth, clientHeight } = container;
@@ -150,7 +151,7 @@ export function createRenderEngine({ container }) {
     world.update(delta);
     units.update(delta);
     gates.update(delta);
-    cameraRig.update({ delta, lookTarget: units.getCentroid() });
+    cameraRig.update({ delta, lookTarget: units.getCentroid(), forwardOffset });
     composer.render(delta);
     animationId = requestAnimationFrame(renderLoop);
   }
@@ -171,6 +172,7 @@ export function createRenderEngine({ container }) {
       units.setEnemyCount(count);
     },
     setForwardOffset: (offset) => {
+      forwardOffset = offset;
       units.setForwardOffset(offset);
       if (world.setForwardOffset) world.setForwardOffset(offset);
     },

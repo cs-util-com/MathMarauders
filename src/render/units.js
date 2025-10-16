@@ -43,17 +43,27 @@ export function createUnitsLayer(scene) {
   let forwardOffset = 0; // meters moved forward along -Z
 
   function updateMesh(mesh, positions, count) {
+    let centroidX = 0;
+    let centroidZ = 0;
     for (let i = 0; i < MAX_UNITS; i += 1) {
       if (i < count) {
         temp.copy(positions[i]);
         // apply forward offset so formation advances along -Z
         temp.z -= forwardOffset;
         mesh.setMatrixAt(i, matrix.makeTranslation(temp.x, temp.y, temp.z));
+        centroidX += temp.x;
+        centroidZ += temp.z;
       } else {
         mesh.setMatrixAt(i, matrix.makeTranslation(0, -999, 0));
       }
     }
     mesh.instanceMatrix.needsUpdate = true;
+    if (count > 0) {
+      centroid.x = centroidX / count;
+      centroid.z = centroidZ / count;
+    } else {
+      centroid.set(0, 0, 0);
+    }
   }
 
   return {
@@ -67,18 +77,6 @@ export function createUnitsLayer(scene) {
       );
       updateMesh(playerMesh, playerPositions, playerCount);
       updateMesh(enemyMesh, enemyPositions, enemyCount);
-
-      if (playerCount > 0) {
-        centroid.set(0, 0, 0);
-        playerPositions.forEach((pos) => {
-          centroid.x += pos.x;
-          centroid.z += pos.z;
-        });
-        centroid.x /= playerPositions.length;
-        centroid.z /= playerPositions.length;
-      } else {
-        centroid.set(0, 0, 0);
-      }
     },
     setPlayerCount(count) {
       playerCount = Math.min(MAX_UNITS, Math.max(0, Math.floor(count)));
