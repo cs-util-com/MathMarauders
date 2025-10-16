@@ -27,6 +27,7 @@ test('index bootstrap collects DOM elements and initializes the app', async () =
     <div data-units></div>
     <div data-stage-label></div>
   <div data-scene-root></div>
+    <div data-steering-slider></div>
     <div data-gate-panel></div>
     <div data-gate-options></div>
     <div data-skirmish-panel></div>

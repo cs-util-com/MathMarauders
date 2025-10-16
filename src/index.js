@@ -15,6 +15,7 @@ function collectElements(doc) {
     stageLabel: doc.querySelector('[data-stage-label]'),
     gatePanel: doc.querySelector('[data-gate-panel]'),
     gateOptions: doc.querySelector('[data-gate-options]'),
+    steeringSlider: doc.querySelector('[data-steering-slider]'),
     skirmishPanel: doc.querySelector('[data-skirmish-panel]'),
     skirmishTicks: doc.querySelector('[data-skirmish-ticks]'),
     skirmishDuration: doc.querySelector('[data-skirmish-duration]'),

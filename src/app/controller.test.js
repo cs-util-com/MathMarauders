@@ -22,6 +22,7 @@ function createDom() {
       <section>
         <div data-stage-label></div>
         <div data-scene-root></div>
+        <div data-steering-slider></div>
         <div data-gate-panel></div>
         <div data-gate-options></div>
         <div data-skirmish-panel></div>
@@ -62,6 +63,7 @@ function createDom() {
     units: query('[data-units]'),
     stageLabel: query('[data-stage-label]'),
     sceneRoot: query('[data-scene-root]'),
+    steeringSlider: query('[data-steering-slider]'),
     gatePanel: query('[data-gate-panel]'),
     gateOptions: query('[data-gate-options]'),
     skirmishPanel: query('[data-skirmish-panel]'),
@@ -97,11 +99,11 @@ function createApp() {
 
 // why this test matters: the forward gate loop must populate choices so players can make meaningful decisions.
 test('forward phase renders gate options and applies choices', () => {
-  const { app, elements } = createApp();
+  const { app } = createApp();
   app.init();
   app.resetState();
   app.enterForwardPhase();
-  expect(elements.gateOptions.children.length).toBe(2);
+  expect(app.state.currentGates.length).toBe(2);
   const before = app.state.playerUnits;
   app.handleGateChoice(0);
   expect(app.state.playerUnits).not.toBe(before);

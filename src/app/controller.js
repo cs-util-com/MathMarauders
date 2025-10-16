@@ -44,6 +44,10 @@ export class GameApp {
       paused: false,
       muted: false,
       lastFrameTime: null,
+      forwardOffset: 0,
+      forwardGateTimer: 0,
+      forwardGateInterval: 1.6,
+      forwardAnimationId: null,
       persistence: {
         highScore: 0,
         bestStars: 0,
@@ -120,7 +124,7 @@ export class GameApp {
 
   setPhase(newPhase) {
     this.state.phase = newPhase;
-    this.elements.gatePanel.classList.toggle('hidden', newPhase !== 'forward');
+    this.elements.gatePanel.classList.toggle('hidden', true);
     this.elements.skirmishPanel.classList.toggle(
       'hidden',
       newPhase !== 'skirmish'
@@ -128,6 +132,14 @@ export class GameApp {
     this.elements.reversePanel.classList.toggle(
       'hidden',
       !newPhase.startsWith('reverse')
+    );
+    if (this.state.forwardAnimationId && newPhase !== 'forward') {
+      cancelAnimationFrame(this.state.forwardAnimationId);
+      this.state.forwardAnimationId = null;
+    }
+    this.elements.steeringSlider.classList.toggle(
+      'hidden',
+      newPhase === 'idle' || newPhase === 'skirmish'
     );
   }
 
@@ -161,6 +173,9 @@ export class GameApp {
     this.state.targetCountdown = 2.4;
     this.state.paused = false;
     this.state.lastFrameTime = null;
+    this.state.forwardOffset = 0;
+    this.state.forwardGateTimer = 0;
+    this.state.forwardAnimationId = null;
     this.elements.reverseGates.innerHTML = '';
     this.elements.reverseProgress.style.width = '0%';
     this.elements.steerInput.value = '50';
@@ -204,23 +219,14 @@ export class GameApp {
   }
 
   renderGateOptions() {
+    // Populate gate data and DOM buttons (DOM buttons are hidden in steering mode,
+    // but tests rely on them existing). Renderer will also display gates.
     this.state.currentGates = generateGateOptions({
       rng: this.state.rng,
       wave: this.state.wave,
       currentCount: this.state.playerUnits,
     });
     this.elements.gateOptions.innerHTML = '';
-    this.state.currentGates.forEach((gate, gateIndex) => {
-      const button = document.createElement('button');
-      button.className = 'gate-card';
-      button.style.background = getGateColor(gate);
-      button.innerHTML = `<div>${formatGateLabel(gate)}</div><span>Projected: ${applyGate(
-        this.state.playerUnits,
-        gate
-      )} troops</span>`;
-      button.addEventListener('click', () => this.handleGateChoice(gateIndex));
-      this.elements.gateOptions.appendChild(button);
-    });
     if (this.renderBridge) {
       const projections = this.state.currentGates.map((gate) =>
         applyGate(this.state.playerUnits, gate)
@@ -267,9 +273,34 @@ export class GameApp {
     this.updateStage('Forward Run');
     this.setPhase('forward');
     this.renderGateOptions();
+    this.startForwardRunLoop();
     if (this.renderBridge) {
       this.renderBridge.setPhase('forward');
     }
+  }
+
+  startForwardRunLoop() {
+    this.state.lastFrameTime = null;
+    const loop = (timestamp) => {
+      if (this.state.phase !== 'forward') {
+        this.state.forwardAnimationId = null;
+        return;
+      }
+      if (this.state.lastFrameTime == null)
+        this.state.lastFrameTime = timestamp;
+      const delta = (timestamp - this.state.lastFrameTime) / 1000;
+      this.state.lastFrameTime = timestamp;
+      this.state.forwardOffset += 6 * delta;
+      this.renderBridge.setForwardOffset(this.state.forwardOffset);
+      this.state.forwardGateTimer += delta;
+      if (this.state.forwardGateTimer >= this.state.forwardGateInterval) {
+        this.state.forwardGateTimer = 0;
+        const index = this.state.sliderPosition < 0.5 ? 0 : 1;
+        this.handleGateChoice(index);
+      }
+      this.state.forwardAnimationId = requestAnimationFrame(loop);
+    };
+    this.state.forwardAnimationId = requestAnimationFrame(loop);
   }
 
   renderSkirmishTimeline(result) {
@@ -494,6 +525,10 @@ export class GameApp {
       return;
     }
     this.cancelReverseAnimation();
+    if (this.state.forwardAnimationId) {
+      cancelAnimationFrame(this.state.forwardAnimationId);
+      this.state.forwardAnimationId = null;
+    }
     this.clearRunTimer();
     this.state.phase = 'idle';
     this.state.paused = false;
@@ -513,19 +548,6 @@ export class GameApp {
       this.renderBridge.setPhase('idle');
       this.renderBridge.setEnemyUnits(0);
     }
-  }
-
-  renderEndCard(success, finalScore, stars) {
-    this.elements.endTitle.textContent = success ? 'Victory!' : 'Defeat';
-    this.elements.endScore.textContent = `Final Score: ${this.formatScore.format(finalScore)}`;
-    this.elements.stars.innerHTML = '';
-    for (let i = 0; i < 3; i += 1) {
-      const star = document.createElement('span');
-      star.textContent = i < stars ? '★' : '☆';
-      this.elements.stars.appendChild(star);
-    }
-    this.elements.overlay.classList.remove('hidden');
-    this.elements.start.disabled = false;
   }
 
   persistRun(finalScore, stars) {
@@ -551,6 +573,19 @@ export class GameApp {
     if (!isOpen) {
       this.addLogEntry('Paused. Take a breath.');
     }
+  }
+
+  renderEndCard(success, finalScore, stars) {
+    this.elements.endTitle.textContent = success ? 'Victory!' : 'Defeat';
+    this.elements.endScore.textContent = `Final Score: ${this.formatScore.format(finalScore)}`;
+    this.elements.stars.innerHTML = '';
+    for (let i = 0; i < 3; i += 1) {
+      const star = document.createElement('span');
+      star.textContent = i < stars ? '★' : '☆';
+      this.elements.stars.appendChild(star);
+    }
+    this.elements.overlay.classList.remove('hidden');
+    this.elements.start.disabled = false;
   }
 
   resumePlay() {

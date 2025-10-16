@@ -40,11 +40,14 @@ export function createUnitsLayer(scene) {
   let enemyCount = 0;
   let steer = 0;
   let targetLane = 0.5;
+  let forwardOffset = 0; // meters moved forward along -Z
 
   function updateMesh(mesh, positions, count) {
     for (let i = 0; i < MAX_UNITS; i += 1) {
       if (i < count) {
         temp.copy(positions[i]);
+        // apply forward offset so formation advances along -Z
+        temp.z -= forwardOffset;
         mesh.setMatrixAt(i, matrix.makeTranslation(temp.x, temp.y, temp.z));
       } else {
         mesh.setMatrixAt(i, matrix.makeTranslation(0, -999, 0));
@@ -90,6 +93,9 @@ export function createUnitsLayer(scene) {
       const clamped = Math.max(0, Math.min(1, lane));
       targetLane = clamped;
       steer = clamped * 2 - 1;
+    },
+    setForwardOffset(offset) {
+      forwardOffset = Number(offset) || 0;
     },
     getCentroid() {
       return centroid;

@@ -281,6 +281,59 @@
         box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.6);
       }
 
+      .steering-slider {
+        position: absolute;
+        bottom: 24px;
+        left: 24px;
+        width: 200px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 24px;
+        padding: 12px;
+      }
+
+      .steering-slider input[type='range'] {
+        width: 100%;
+        appearance: none;
+        background: none;
+        margin: 0;
+      }
+
+      .steering-slider input[type='range']::-webkit-slider-runnable-track {
+        height: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+      }
+
+      .steering-slider input[type='range']::-webkit-slider-thumb {
+        appearance: none;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--pink);
+        border: 4px solid rgba(255, 255, 255, 0.6);
+        margin-top: -17px;
+        transition: transform 120ms ease;
+      }
+
+      .steering-slider input[type='range']:active::-webkit-slider-thumb {
+        transform: scale(1.1);
+      }
+
+      .steering-slider input[type='range']::-moz-range-track {
+        height: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+      }
+
+      .steering-slider input[type='range']::-moz-range-thumb {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: none;
+        background: var(--pink);
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.6);
+      }
+
       .reverse-panel__target {
         position: absolute;
         top: 50%;
@@ -422,6 +475,17 @@
       <section class="lane">
         <div class="stage-label" data-stage-label>Forward Run</div>
         <div class="scene" data-scene-root aria-hidden="true"></div>
+        <div class="steering-slider hidden" data-steering-slider>
+          <label class="sr-only" for="steer">Steering slider</label>
+          <input
+            id="steer"
+            type="range"
+            min="0"
+            max="100"
+            value="50"
+            data-steer-input
+          />
+        </div>
         <div class="gate-panel" data-gate-panel>
           <div class="gate-panel__options" data-gate-options></div>
         </div>
@@ -457,15 +521,6 @@
               data-target-indicator
               aria-hidden="true"
             ></div>
-            <label class="sr-only" for="steer">Steering slider</label>
-            <input
-              id="steer"
-              type="range"
-              min="0"
-              max="100"
-              value="50"
-              data-steer-input
-            />
           </div>
           <div class="reverse-panel__gates" data-reverse-gates></div>
         </div>

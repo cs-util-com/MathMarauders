@@ -170,6 +170,10 @@ export function createRenderEngine({ container }) {
     setEnemyUnits: (count) => {
       units.setEnemyCount(count);
     },
+    setForwardOffset: (offset) => {
+      units.setForwardOffset(offset);
+      if (world.setForwardOffset) world.setForwardOffset(offset);
+    },
     resetGates: () => {
       gates.reset();
     },

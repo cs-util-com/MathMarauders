@@ -132,9 +132,17 @@ export function createWorld(scene) {
       targetIndicator.scale.set(scale, 1, scale);
     },
     setReverseProgress(progress) {
+      // progress in [0,1] maps to an offset along the lane
       reverseProgress = Math.max(0, Math.min(1, progress));
       const offsetZ = reverseProgress * (LANE_LENGTH * 0.4) - LANE_LENGTH * 0.2;
       targetIndicator.position.z = offsetZ;
+    },
+    setForwardOffset(meters) {
+      const clamped = Number(meters) || 0;
+      const offsetZ = Math.max(0, Math.min(LANE_LENGTH, clamped));
+      // move the lane slightly to give forward motion illusion
+      lane.position.z = -offsetZ / 2;
+      targetIndicator.position.z = -4 - offsetZ;
     },
     setReverseTargetLane(laneValue) {
       targetLane = Math.max(0, Math.min(1, laneValue));
